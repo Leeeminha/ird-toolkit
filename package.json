@@ -1,0 +1,9 @@
+{
+  "name": "ird-toolkit",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Infrastructural Reflective Design Toolkit — A new lens for UX designers",
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,6595 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Infrastructural Reflective Design — 보이지 않는 것을 디자인하기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fafaf9;
+    --bg-card: #ffffff;
+    --bg-soft: #f4f4f2;
+    --ink: #0a0a0a;
+    --ink-soft: #404040;
+    --ink-mute: #737373;
+    --ink-fade: #a3a3a3;
+    --line: #e8e8e5;
+    --line-strong: #d4d4d1;
+
+    --accent: #2563eb;
+    --accent-soft: #eff6ff;
+    --highlight: #ecfccb;
+    --highlight-strong: #d9f99d;
+
+    /* Tool tabs (Hints / Translator / Studio) — 블루 톤으로 통일 */
+    --tool-bg: #FAFAF8;          /* 따뜻한 베이지톤 배경 */
+    --tool-card: #ffffff;
+    --tool-line: #D5D3CC;        /* 베이지 그레이 보더 */
+    --tool-line-soft: #E5E3DC;
+    --tool-mute: #9B998F;        /* 베이지 그레이 텍스트 */
+    --tool-ink: #141414;
+    --tool-accent: #2563eb;      /* 메인 블루 */
+    --tool-accent-soft: #eff6ff; /* 연한 블루 배경 */
+
+    --sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --mono: 'Geist Mono', 'SF Mono', monospace;
+
+    --radius-sm: 6px;
+    --radius: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 20px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; font-size: 16px; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-weight: 400;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.011em;
+  }
+
+  ::selection { background: var(--ink); color: var(--bg); }
+
+  .container { max-width: 1040px; margin: 0 auto; padding: 0 1.75rem; }
+  .container-narrow { max-width: 720px; margin: 0 auto; padding: 0 1.75rem; }
+
+  /* ─── 강조 유틸리티 (모던 스타일) ─── */
+
+  /* hl — 회색 pill: 오프화이트(--bg) 섹션에서 사용. */
+  .hl {
+    background: var(--bg-soft);
+    padding: 0.08em 0.38em;
+    margin: 0 0.02em;
+    border-radius: 5px;
+    font-weight: 500;
+    color: var(--ink);
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+
+  /* hl-light — 연한 회색 pill: 회색(--bg-soft) 배경 섹션에서 사용. 
+     배경보다 한 톤 밝아 pill이 떠오르듯 보임. */
+  .hl-light {
+    background: #fafaf9;
+    padding: 0.08em 0.38em;
+    margin: 0 0.02em;
+    border-radius: 5px;
+    font-weight: 500;
+    color: var(--ink);
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+
+  /* hl-strong — 컬러 pill: 컴팩트한 강조 */
+  .hl-strong {
+    background: #eef5ff;
+    color: var(--accent);
+    padding: 0.06em 0.42em;
+    border-radius: 6px;
+    font-weight: 600;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+
+  /* ─── hl-accent — 연한 블루 pill, Hero와 Closing 공통 ─── */
+  .hl-accent {
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 0 0.32em;
+    border-radius: 7px;
+    font-weight: 600;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+
+  .ink-accent { color: var(--accent); font-weight: 500; }
+  .ink-strong { color: var(--ink); font-weight: 600; }
+
+  /* ─── 반응형 줄바꿈 유틸리티 ─── */
+  .br-md { display: none; }
+  @media (min-width: 720px) {
+    .br-md { display: inline; }
+  }
+
+  /* 데스크톱에서 중간에 줄바꿈 되지 않도록 묶는 유틸 */
+  @media (min-width: 720px) {
+    .nobreak { white-space: nowrap; }
+  }
+
+  /* ─────────────── NAV ─────────────── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(250, 250, 249, 0.82);
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
+  }
+  nav.scrolled { border-bottom-color: var(--line); }
+
+  .nav-inner {
+    max-width: none;
+    margin: 0 auto;
+    padding: 0.9rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .nav-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 500;
+    font-size: 0.88rem;
+    letter-spacing: -0.015em;
+    text-decoration: none;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .nav-brand svg { width: 22px; height: 22px; }
+
+  /* ─── 상위 탭 ─── */
+  .nav-tabs {
+    display: flex;
+    gap: 0.35rem;
+    align-items: center;
+  }
+  .nav-tab {
+    background: none;
+    border: none;
+    padding: 0.5rem 0.85rem;
+    font-family: var(--sans);
+    font-size: 0.84rem;
+    color: var(--ink-mute);
+    cursor: pointer;
+    border-radius: 100px;
+    transition: color 0.18s ease, background 0.18s ease;
+    letter-spacing: -0.012em;
+    white-space: nowrap;
+  }
+  .nav-tab:hover {
+    color: var(--ink);
+    background: var(--bg-soft);
+  }
+  .nav-tab.active {
+    color: var(--ink);
+    background: var(--bg-soft);
+    font-weight: 500;
+  }
+
+  /* ─── 첫 탭 내부 LNB (섹션 점프) ─── */
+  /* LNB는 fixed 오버레이 레이어 — 페이지 흐름에 영향 안 주고
+     nav 바로 아래에 항상 떠있음. 콘텐츠는 LNB 아래에 그대로 흐름. */
+  .nav-sublinks {
+    position: fixed;
+    top: var(--nav-h, 56px);
+    left: 0; right: 0;
+    border-top: 1px solid var(--line);
+    background: rgba(250, 250, 249, 0.92);
+    backdrop-filter: saturate(180%) blur(10px);
+    -webkit-backdrop-filter: saturate(180%) blur(10px);
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.3s ease, opacity 0.25s ease, transform 0.3s ease;
+    opacity: 0;
+    transform: translateY(-4px);
+    pointer-events: none;
+    z-index: 99;
+  }
+  .nav-sublinks.visible {
+    max-height: 60px;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .nav-sublinks-inner {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 0.55rem 1.5rem;
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    font-size: 0.8rem;
+  }
+  .nav-sublinks-inner a {
+    color: var(--ink-mute);
+    text-decoration: none;
+    transition: color 0.18s ease;
+    position: relative;
+    padding: 0.25rem 0;
+  }
+  .nav-sublinks-inner a:hover { color: var(--ink); }
+  .nav-sublinks-inner a.active {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .nav-sublinks-inner a.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -2px;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 1px;
+  }
+  .nav-sublinks-inner a .lnb-soon {
+    display: inline-block;
+    margin-left: 0.4rem;
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 0.1rem 0.4rem;
+    border-radius: 100px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    vertical-align: 1px;
+  }
+
+  .nav-cta {
+    padding: 0.45rem 0.9rem;
+    background: var(--ink);
+    color: var(--bg);
+    font-size: 0.82rem;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    transition: opacity 0.15s;
+    border: none;
+    cursor: pointer;
+    font-family: var(--sans);
+    letter-spacing: -0.011em;
+  }
+  .nav-cta:hover { opacity: 0.82; }
+
+  /* 모바일: 탭은 가로 스크롤, LNB는 숨김 */
+  @media (max-width: 760px) {
+    .nav-tabs {
+      gap: 0.15rem;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .nav-tabs::-webkit-scrollbar { display: none; }
+    .nav-tab {
+      padding: 0.45rem 0.7rem;
+      font-size: 0.78rem;
+    }
+    .nav-sublinks { display: none; }
+    .nav-cta { display: none; }
+  }
+
+  /* ─── 탭 패널 ─── */
+  .tab-panel {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .tab-panel.active {
+    display: block;
+    opacity: 1;
+  }
+  /* fading-out: leaving 패널이 absolute로 빠지지만 원래 위치를 유지하도록
+     JS에서 top 좌표를 동적으로 set. 페이지 점프 방지 */
+  .tab-panel.is-leaving {
+    display: block;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    left: 0; right: 0;
+    /* top은 JS에서 set */
+    z-index: 0;
+  }
+  .tab-panel.active {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* home → tab-concept 진입 시: hero 아래 추가 콘텐츠가 자연스럽게 슬라이드 업 */
+  #tab-concept.is-entering-from-home .hero-meta-row,
+  #tab-concept.is-entering-from-home .x-quote,
+  #tab-concept.is-entering-from-home #problem,
+  #tab-concept.is-entering-from-home #tension,
+  #tab-concept.is-entering-from-home #ambiguity,
+  #tab-concept.is-entering-from-home #concept,
+  #tab-concept.is-entering-from-home #rebound {
+    opacity: 0;
+    transform: translateY(24px);
+    animation: extraContentSlideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  #tab-concept.is-entering-from-home .hero-meta-row { animation-delay: 0.1s; }
+  #tab-concept.is-entering-from-home .x-quote      { animation-delay: 0.2s; }
+  #tab-concept.is-entering-from-home #problem      { animation-delay: 0.3s; }
+  #tab-concept.is-entering-from-home #tension      { animation-delay: 0.35s; }
+  #tab-concept.is-entering-from-home #ambiguity    { animation-delay: 0.4s; }
+  #tab-concept.is-entering-from-home #concept      { animation-delay: 0.45s; }
+  #tab-concept.is-entering-from-home #rebound      { animation-delay: 0.5s; }
+
+  @keyframes extraContentSlideUp {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ─── Concept 섹션 끝 CTA wrap ─── */
+  .concept-cta-wrap {
+    max-width: 56rem;
+    margin: 4.5rem auto 0;
+    text-align: center;
+    padding-top: 3rem;
+    border-top: 1px solid var(--line);
+  }
+
+  /* ─── Problem 섹션 끝 CTA wrap ─── */
+  .problem-cta-wrap {
+    max-width: 56rem;
+    margin: 3rem auto 0;
+    text-align: center;
+  }
+
+  /* ─────────────── BACKEND TRANSLATOR ─────────────── */
+  .translator .tab-frame {
+    background: var(--tool-card);
+    border-color: var(--tool-line);
+    box-shadow: 0 4px 20px rgba(20, 20, 20, 0.04), 0 1px 2px rgba(20, 20, 20, 0.02);
+  }
+
+  /* ─── Translator workspace: 좌측 입력 패널 + 우측 결과 영역 ─── */
+  .tool-workspace {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+  }
+  @media (max-width: 1000px) {
+    .tool-workspace {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr;
+    }
+  }
+
+  /* 좌측 sidebar */
+  .tw-sidebar {
+    background: var(--tool-bg);
+    border-right: 1px solid var(--tool-line);
+    padding: 1.75rem 1.5rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  @media (max-width: 1000px) {
+    .tw-sidebar {
+      border-right: none;
+      border-bottom: 1px solid var(--tool-line);
+      padding: 1.25rem 1.25rem 1.5rem;
+    }
+  }
+
+  .tw-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+  .tw-section-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    color: var(--tool-mute);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.15rem;
+  }
+  .tw-label-num {
+    color: var(--tool-accent);
+    font-weight: 600;
+  }
+  .tw-label-text {
+    color: var(--tool-ink);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+  }
+  .tw-label-text-alt {
+    color: var(--tool-mute);
+    font-weight: 500;
+  }
+  .tw-section-help {
+    font-size: 0.78rem;
+    color: var(--tool-mute);
+    line-height: 1.55;
+    margin: 0;
+  }
+  .tw-input-row {
+    display: flex;
+  }
+  .tw-input {
+    flex: 1;
+    width: 100%;
+    border: 1px solid var(--tool-line);
+    background: var(--tool-card);
+    border-radius: 6px;
+    padding: 0.7rem 0.85rem;
+    font-family: var(--sans);
+    font-size: 0.85rem;
+    color: var(--tool-ink);
+    outline: none;
+    transition: border-color 0.18s, box-shadow 0.18s;
+    letter-spacing: -0.012em;
+    line-height: 1.55;
+    resize: vertical;
+    min-height: 4.5rem;
+    max-height: 16rem;
+  }
+  .tw-input:focus {
+    border-color: var(--tool-accent);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
+  }
+  .tw-input::placeholder {
+    color: var(--tool-mute);
+    line-height: 1.55;
+  }
+  .tw-run-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    background: var(--tool-ink);
+    color: var(--tool-card);
+    border: none;
+    padding: 0.65rem 1rem;
+    font-family: var(--sans);
+    font-size: 0.85rem;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: opacity 0.18s, transform 0.18s;
+    letter-spacing: -0.012em;
+    width: 100%;
+  }
+  .tw-run-btn:hover { opacity: 0.85; }
+  .tw-run-btn:active { transform: scale(0.98); }
+  .tw-run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .tw-run-btn.is-loading .tw-run-label::after {
+    content: '...';
+    display: inline-block;
+    width: 1em;
+    text-align: left;
+  }
+  .tw-run-arrow { transition: transform 0.18s; }
+  .tw-run-btn:hover .tw-run-arrow { transform: translateX(2px); }
+
+  .tw-divider {
+    height: 1px;
+    background: var(--tool-line);
+    margin: 1.75rem 0;
+  }
+  .tw-about {
+    font-size: 0.78rem;
+    line-height: 1.7;
+    color: var(--tool-mute);
+    margin: 0;
+  }
+  .tw-disclaimer {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    margin-top: 1rem;
+    padding: 0.55rem 0.65rem;
+    background: var(--tool-card);
+    border: 1px solid var(--tool-line);
+    border-radius: 5px;
+    font-size: 0.7rem;
+    color: var(--tool-mute);
+    line-height: 1.55;
+  }
+  .tw-disclaimer[hidden] { display: none; }
+  .tw-disclaimer svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    margin-top: 0.18rem;
+    color: var(--tool-mute);
+  }
+
+  /* 우측 main */
+  .tw-main {
+    background: var(--tool-card);
+    padding: 1.75rem 2rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    min-height: 0;
+  }
+  @media (max-width: 1000px) {
+    .tw-main { padding: 1.5rem 1.25rem; }
+  }
+  .tw-main-label { margin-bottom: 0.25rem; }
+
+  /* main label과 Speculative 뱃지 같이 나란히 */
+  .tw-main-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+  }
+  .tw-main-label-row .tw-main-label { margin-bottom: 0; }
+
+  /* Speculative 뱃지 — 도구의 윤리적 시각 표지 */
+  .tw-spec-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    color: var(--tool-mute);
+    padding: 0.25rem 0.6rem;
+    border: 1px dashed var(--tool-line);
+    border-radius: 999px;
+    letter-spacing: 0.04em;
+    cursor: help;
+    transition: color 0.18s, border-color 0.18s;
+  }
+  .tw-spec-badge:hover {
+    color: var(--tool-ink);
+    border-color: var(--tool-mute);
+    border-style: solid;
+  }
+  .tw-spec-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--tool-mute);
+    flex-shrink: 0;
+  }
+  .tw-spec-badge:hover .tw-spec-dot { background: var(--tool-ink); }
+
+  /* main 상단 영역: section label + scenario echo */
+  .tw-main-head {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    flex-shrink: 0;
+  }
+  .tw-echo {
+    padding: 0.25rem 0 0.5rem;
+  }
+  .tw-echo[hidden] { display: none; }
+  .tw-echo-label {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    color: var(--tool-mute);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+  .tw-echo-text {
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: var(--tool-ink);
+    margin: 0;
+    max-width: none;
+    width: 100%;
+    font-weight: 600;
+    letter-spacing: -0.018em;
+  }
+
+  /* panels: 자연스러운 크기로, echo가 길어져도 영향 안 받음 */
+  .tw-panels {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    flex-shrink: 0;
+  }
+  .tw-panel {
+    background: var(--tool-card);
+    border: 1px solid var(--tool-line);
+    border-radius: 6px;
+    padding: 1.4rem 1.6rem 1.75rem;
+    display: flex;
+    flex-direction: column;
+    min-height: 180px;
+  }
+  .tw-panel-back {
+    background: var(--tool-bg);
+    border-color: var(--tool-line);
+  }
+  .tw-panel-head {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-bottom: 1.4rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--tool-line);
+  }
+  .tw-panel-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    background: var(--tool-bg);
+    color: var(--tool-mute);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .tw-panel-icon svg { width: 14px; height: 14px; }
+  .tw-panel-back .tw-panel-icon {
+    background: var(--tool-accent-soft);
+    color: var(--tool-accent);
+  }
+  .tw-panel-meta {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .tw-panel-tag {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    color: var(--tool-ink);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .tw-panel-back .tw-panel-tag {
+    color: var(--tool-accent);
+  }
+  .tw-panel-sub {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    color: var(--tool-mute);
+    letter-spacing: 0.02em;
+  }
+  .tw-panel-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+  .tw-panel-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--tool-ink);
+    letter-spacing: -0.018em;
+    line-height: 1.4;
+    margin-bottom: 0.85rem;
+  }
+  .tw-panel-content {
+    width: 100%;
+    max-width: none;
+  }
+  .tw-panel-content p,
+  .tw-panel-content ul {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: var(--tool-mute);
+    max-width: none;
+    width: 100%;
+  }
+  .tw-panel-content ul {
+    padding-left: 1rem;
+    list-style: none;
+  }
+  .tw-panel-content li {
+    position: relative;
+    padding-left: 0.35rem;
+    margin-bottom: 0.5rem;
+  }
+  .tw-panel-content li::before {
+    content: '';
+    position: absolute;
+    left: -0.85rem;
+    top: 0.6rem;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--tool-line-soft);
+  }
+  .tw-panel-back-body li::before { background: var(--tool-accent); }
+
+  /* Backend lines stagger animation */
+  .tw-panel-back-body li {
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .tw-main[data-state="ready"] .tw-panel-back-body li {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .tw-panel-back-body li:nth-child(1) { transition-delay: 0s; }
+  .tw-panel-back-body li:nth-child(2) { transition-delay: 0.12s; }
+  .tw-panel-back-body li:nth-child(3) { transition-delay: 0.24s; }
+  .tw-panel-back-body li:nth-child(4) { transition-delay: 0.36s; }
+  .tw-panel-back-body li:nth-child(5) { transition-delay: 0.48s; }
+
+  /* Empty state */
+  .tw-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.7rem;
+    padding: 0.75rem 0;
+  }
+  .tw-empty-mark {
+    width: 1.75rem;
+    height: 1px;
+    background: var(--tool-line-soft);
+  }
+  .tw-empty p {
+    font-size: 0.82rem;
+    color: var(--tool-mute);
+    line-height: 1.6;
+    font-style: italic;
+    margin: 0;
+  }
+
+  /* Loading */
+  .tw-main[data-state="loading"] .tw-panel-content {
+    opacity: 0.6;
+  }
+  .tw-loading-pulse {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--tool-mute);
+    font-size: 0.82rem;
+  }
+  .tw-loading-pulse::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--tool-accent);
+    animation: transLoadPulse 1.2s ease-in-out infinite;
+  }
+
+  /* Insight (uses panel-back style + accent) */
+  .tw-insight {
+    background: var(--tool-accent-soft);
+    border-radius: 6px;
+    padding: 1.25rem 1.6rem 1.4rem;
+    border: 1px solid rgba(37, 99, 235, 0.15);
+    flex-shrink: 0;
+  }
+  .tw-insight[hidden] { display: none; }
+  .tw-insight-head {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.7rem;
+  }
+  .tw-insight-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--tool-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .tw-insight-icon svg { width: 100%; height: 100%; }
+  .tw-insight-label {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    color: var(--tool-accent);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .tw-insight p {
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: var(--tool-ink);
+    margin: 0;
+    max-width: none;
+    width: 100%;
+  }
+
+  /* 시나리오 chips (만약 ~라면?) — Studio 패턴 */
+  .tw-scenarios {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    flex-shrink: 0;
+    padding-top: 0.25rem;
+  }
+  .tw-scenarios[hidden] { display: none; }
+  .tw-scenarios-label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .tw-scenarios-label-text {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    color: var(--tool-ink);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .tw-scenarios-help {
+    font-size: 0.75rem;
+    color: var(--tool-mute);
+    line-height: 1.5;
+  }
+  .tw-scenarios-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .tw-scenario-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: var(--tool-card);
+    border: 1px solid var(--tool-line);
+    color: var(--tool-ink);
+    padding: 0.45rem 0.85rem;
+    font-family: var(--sans);
+    font-size: 0.82rem;
+    line-height: 1.4;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: border-color 0.18s, background 0.18s, transform 0.18s;
+    letter-spacing: -0.012em;
+    text-align: left;
+  }
+  .tw-scenario-chip:hover {
+    border-color: var(--tool-accent);
+    background: var(--tool-accent-soft);
+    color: var(--tool-accent);
+  }
+  .tw-scenario-chip:active { transform: scale(0.98); }
+  .tw-scenario-chip-arrow {
+    color: var(--tool-mute);
+    font-size: 0.85em;
+    transition: transform 0.18s, color 0.18s;
+  }
+  .tw-scenario-chip:hover .tw-scenario-chip-arrow {
+    color: var(--tool-accent);
+    transform: translateX(2px);
+  }
+
+  /* Translator 안의 모든 액센트 컬러를 sage green으로 override */
+  .translator .trans-eyebrow {
+    background: var(--tool-bg);
+    border-color: var(--tool-line);
+    color: var(--tool-mute);
+  }
+  .translator .trans-eyebrow .dot { background: var(--tool-accent); }
+  .translator .trans-title { color: var(--tool-ink); }
+  .translator .trans-title .hl-accent {
+    background: var(--tool-accent-soft);
+    color: var(--tool-accent);
+  }
+  .translator .trans-lead { color: var(--tool-mute); }
+  .translator .trans-input-tag {
+    color: var(--tool-accent);
+    background: var(--tool-accent-soft);
+  }
+  .translator .trans-input-help { color: var(--tool-mute); }
+  .translator .trans-input-row {
+    background: var(--tool-card);
+    border-color: var(--tool-line);
+  }
+  .translator .trans-input-row:focus-within {
+    border-color: var(--tool-accent);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.10);
+  }
+  .translator .trans-input { color: var(--tool-ink); }
+  .translator .trans-input::placeholder { color: var(--tool-mute); }
+  .translator .trans-run-btn {
+    background: var(--tool-ink);
+    color: var(--tool-card);
+  }
+  /* 결과 카드 */
+  .translator .trans-side {
+    background: var(--tool-card);
+    border-color: var(--tool-line);
+    border-radius: 6px;
+  }
+  .translator .trans-side-back {
+    background: var(--tool-bg);
+    border-color: var(--tool-line);
+  }
+  .translator .trans-side-head {
+    border-bottom-color: var(--tool-line);
+  }
+  .translator .trans-side-back .trans-side-head {
+    border-bottom-color: var(--tool-line);
+  }
+  .translator .trans-side-icon {
+    background: var(--tool-bg);
+    color: var(--tool-mute);
+    border-radius: 5px;
+  }
+  .translator .trans-side-back .trans-side-icon {
+    background: var(--tool-accent-soft);
+    color: var(--tool-accent);
+  }
+  .translator .trans-side-tag {
+    color: var(--tool-mute);
+  }
+  .translator .trans-side-back .trans-side-tag {
+    color: var(--tool-accent);
+  }
+  .translator .trans-side-name { color: var(--tool-ink); }
+  .translator .trans-side-body p,
+  .translator .trans-side-body ul {
+    color: var(--tool-mute);
+  }
+  .translator .trans-side-back-body li::before {
+    background: var(--tool-accent);
+  }
+  .translator .trans-empty { color: var(--tool-mute); }
+  /* Insight 박스 */
+  .translator .trans-insight {
+    background: var(--tool-accent-soft);
+    border-radius: 8px;
+  }
+  .translator .trans-insight-icon {
+    background: var(--tool-accent);
+    color: var(--tool-card);
+  }
+  .translator .trans-insight-label { color: var(--tool-accent); }
+  .translator .trans-insight-content p { color: var(--tool-mute); }
+  /* AI 고지 */
+  .translator .trans-disclaimer {
+    background: var(--tool-bg);
+    color: var(--tool-mute);
+    border-radius: 6px;
+  }
+  .translator .trans-disclaimer svg { color: var(--tool-mute); }
+  /* loading dot */
+  .translator .trans-loading-pulse { color: var(--tool-mute); }
+  .translator .trans-loading-pulse::before { background: var(--tool-accent); }
+  .trans-head {
+    max-width: 56rem;
+    margin: 0 auto 2.5rem;
+    text-align: left;
+  }
+  .trans-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--ink-mute);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.35rem 0.75rem;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    margin-bottom: 1.5rem;
+  }
+  .trans-eyebrow .dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .trans-title {
+    font-size: clamp(1.9rem, 3.6vw, 2.5rem);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.032em;
+    margin-bottom: 1.25rem;
+    max-width: 24ch;
+    color: var(--ink);
+  }
+  .trans-lead {
+    font-size: 0.96rem;
+    line-height: 1.7;
+    color: var(--ink-soft);
+    max-width: none;
+  }
+
+  /* 입력 영역 */
+  .trans-input-wrap {
+    max-width: 56rem;
+    margin: 0 auto 2rem;
+  }
+  .trans-input-label {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.65rem;
+    flex-wrap: wrap;
+  }
+  .trans-input-tag {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.55rem;
+    background: var(--accent-soft);
+    border-radius: 100px;
+  }
+  .trans-input-help {
+    font-size: 0.85rem;
+    color: var(--ink-mute);
+  }
+  .trans-input-row {
+    display: flex;
+    gap: 0.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--line-strong);
+    border-radius: 14px;
+    padding: 0.5rem;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+  .trans-input-row:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.08);
+  }
+  .trans-input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 0.7rem 0.85rem;
+    font-family: var(--sans);
+    font-size: 0.95rem;
+    color: var(--ink);
+    letter-spacing: -0.012em;
+  }
+  .trans-input::placeholder { color: var(--ink-fade); }
+  .trans-run-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: var(--ink);
+    color: var(--bg);
+    border: none;
+    padding: 0 1.15rem;
+    font-family: var(--sans);
+    font-size: 0.88rem;
+    font-weight: 500;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    letter-spacing: -0.012em;
+    flex-shrink: 0;
+  }
+  .trans-run-btn:hover { opacity: 0.85; }
+  .trans-run-btn:active { transform: scale(0.98); }
+  .trans-run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .trans-run-arrow {
+    transition: transform 0.18s ease;
+  }
+  .trans-run-btn:hover .trans-run-arrow {
+    transform: translateX(2px);
+  }
+
+  /* 빠른 예시 chips */
+  .trans-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 0.85rem;
+    align-items: center;
+  }
+  .trans-preset-label {
+    font-size: 0.78rem;
+    color: var(--ink-mute);
+    margin-right: 0.25rem;
+  }
+  .trans-preset {
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    padding: 0.35rem 0.75rem;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: border-color 0.18s, color 0.18s, background 0.18s;
+    letter-spacing: -0.01em;
+  }
+  .trans-preset:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  /* 결과 영역 */
+  .trans-result {
+    max-width: 56rem;
+    margin: 0 auto;
+  }
+  .trans-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  @media (max-width: 760px) {
+    .trans-grid { grid-template-columns: 1fr; }
+  }
+  .trans-side {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 1.4rem 1.5rem 1.55rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+  }
+  .trans-side-back {
+    background: var(--bg-soft);
+    border-color: var(--line-strong);
+  }
+  .trans-side-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .trans-side-back .trans-side-head { border-bottom-color: var(--line-strong); }
+  .trans-side-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    background: var(--bg-soft);
+    color: var(--ink-mute);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .trans-side-icon svg { width: 16px; height: 16px; }
+  .trans-side-back .trans-side-icon {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .trans-side-meta {
+    flex: 1;
+    min-width: 0;
+  }
+  .trans-side-tag {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    color: var(--ink-mute);
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 0.2rem;
+  }
+  .trans-side-back .trans-side-tag { color: var(--accent); }
+  .trans-side-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.018em;
+    line-height: 1.35;
+  }
+  .trans-side-body {
+    flex: 1;
+  }
+  .trans-side-body p,
+  .trans-side-body ul {
+    margin: 0;
+    font-size: 0.86rem;
+    line-height: 1.65;
+    color: var(--ink-soft);
+  }
+  .trans-side-body ul {
+    padding-left: 1.1rem;
+    list-style: none;
+  }
+  .trans-side-body li {
+    position: relative;
+    padding-left: 0.35rem;
+    margin-bottom: 0.45rem;
+  }
+  .trans-side-body li::before {
+    content: '';
+    position: absolute;
+    left: -1rem;
+    top: 0.6rem;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--ink-fade);
+  }
+  .trans-side-back-body li::before {
+    background: var(--accent);
+  }
+  .trans-empty {
+    color: var(--ink-fade);
+    font-style: italic;
+    font-size: 0.85rem;
+  }
+
+  /* 변환 중일 때: 백엔드 라인이 차례로 등장 */
+  .trans-side-back-body li {
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .trans-result[data-state="ready"] .trans-side-back-body li {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .trans-side-back-body li:nth-child(1) { transition-delay: 0s; }
+  .trans-side-back-body li:nth-child(2) { transition-delay: 0.12s; }
+  .trans-side-back-body li:nth-child(3) { transition-delay: 0.24s; }
+  .trans-side-back-body li:nth-child(4) { transition-delay: 0.36s; }
+  .trans-side-back-body li:nth-child(5) { transition-delay: 0.48s; }
+
+  /* 인사이트 박스 */
+  .trans-insight {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    padding: 1.1rem 1.3rem;
+    background: var(--accent-soft);
+    border-radius: 12px;
+    margin-top: 1rem;
+  }
+  .trans-insight[hidden] {
+    display: none;
+  }
+  .trans-insight-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    font-family: var(--mono);
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+  .trans-insight-content { flex: 1; min-width: 0; }
+  .trans-insight-label {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+  }
+  .trans-insight-content p {
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    margin: 0;
+    max-width: none;
+    width: 100%;
+  }
+
+  /* AI 고지 */
+  .trans-disclaimer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding: 0.65rem 0.9rem;
+    background: var(--bg-soft);
+    border-radius: 10px;
+    font-size: 0.78rem;
+    color: var(--ink-mute);
+    line-height: 1.5;
+  }
+  .trans-disclaimer[hidden] {
+    display: none;
+  }
+  .trans-disclaimer svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    color: var(--ink-fade);
+  }
+
+  /* 로딩 상태 — shimmer */
+  .trans-result[data-state="loading"] .trans-side-body {
+    opacity: 0.5;
+  }
+  .trans-result[data-state="loading"] .trans-side-name {
+    opacity: 0.6;
+  }
+  .trans-loading-pulse {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--ink-mute);
+    font-size: 0.86rem;
+  }
+  .trans-loading-pulse::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: transLoadPulse 1.2s ease-in-out infinite;
+  }
+  @keyframes transLoadPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(0.7); }
+  }
+
+  /* 에러 상태 */
+  .trans-error {
+    color: var(--ink-soft);
+    font-size: 0.86rem;
+    line-height: 1.6;
+  }
+  .trans-error strong { color: var(--ink); }
+
+  /* 버튼 비활성 시 */
+  .trans-run-btn.is-loading .trans-run-label::after {
+    content: '...';
+    display: inline-block;
+    width: 1em;
+    text-align: left;
+  }
+
+  @media (max-width: 760px) {
+    .trans-input-row { flex-direction: column; padding: 0.6rem; gap: 0.5rem; }
+    .trans-run-btn { width: 100%; padding: 0.7rem 1rem; justify-content: center; }
+    .trans-input { padding: 0.5rem 0.6rem; }
+  }
+
+  /* ─────────────── 도구 탭 공통 풀스크린 시스템 ─────────────── */
+  /* 도구 탭 활성 시 body 스크롤 잠금 (도구 frame 안에서만 스크롤) */
+  body.tool-active,
+  body.studio-active {
+    overflow: hidden;
+    height: 100vh;
+    background: var(--tool-bg);
+  }
+  body.tool-active footer,
+  body.studio-active footer {
+    display: none;
+  }
+
+  /* Home 활성 시: 스크롤 잠금 + footer 숨김 (랜딩 페이지는 100vh 안에서 완결) */
+  body.home-active {
+    overflow: hidden;
+    height: 100vh;
+  }
+  body.home-active footer {
+    display: none;
+  }
+
+  /* 풀스크린 탭 패널 */
+  .tab-panel-fullscreen.active {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Hints / Translator 섹션도 풀스크린 frame으로 */
+  .hints-tool,
+  .translator {
+    background: var(--tool-bg);
+    border-top: 1px solid var(--tool-line);
+    /* 풀스크린 모드: viewport 채우기 */
+    padding: 0;
+    height: calc(100vh - var(--nav-h, 56px));
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  /* container를 사용하지 않고 frame에 직접 margin → Studio와 정확히 일치 */
+  .hints-tool > .container,
+  .translator > .container {
+    max-width: none;
+    padding: 0;
+    margin: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+  }
+  /* frame: Studio와 동일하게 margin 1.5rem, 안에서 스크롤 */
+  .hints-tool .tab-frame,
+  .translator .tab-frame {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+    margin: 1.5rem 1.5rem;
+  }
+  /* tool-body는 toolbar 아래 남은 공간을 모두 차지하고, 안에서 스크롤 */
+  .tool-body {
+    padding: 2.5rem 2.5rem 3rem;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
+  }
+  /* Translator: 워크스페이스 레이아웃이라 padding 0 + 풀 사용 */
+  .translator .tool-body {
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  /* tool-body 스크롤바 톤 (베이지 톤) */
+  .tool-body::-webkit-scrollbar { width: 10px; }
+  .tool-body::-webkit-scrollbar-track { background: transparent; }
+  .tool-body::-webkit-scrollbar-thumb {
+    background: var(--tool-line);
+    border-radius: 999px;
+    border: 2px solid var(--tool-card);
+  }
+  .tool-body::-webkit-scrollbar-thumb:hover {
+    background: var(--tool-mute);
+  }
+
+  @media (max-width: 760px) {
+    .hints-tool .tab-frame,
+    .translator .tab-frame {
+      margin: 0.85rem 0.85rem;
+    }
+    .tool-body {
+      padding: 1.85rem 1.4rem 2.25rem;
+    }
+  }
+
+  /* ─── Studio 풀스크린 ─── */
+  .studio-fullscreen {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - var(--nav-h, 56px) - 3rem);
+    margin: 1.5rem 1.5rem;
+    background: var(--tool-card);
+    border: 1px solid var(--tool-line);
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(20, 20, 20, 0.04), 0 1px 2px rgba(20, 20, 20, 0.02);
+    overflow: hidden;
+  }
+  @media (max-width: 760px) {
+    .studio-fullscreen {
+      margin: 0.85rem 0.85rem;
+      height: calc(100vh - var(--nav-h, 56px) - 1.7rem);
+      border-radius: 6px;
+    }
+  }
+
+  /* 상단 작은 toolbar — 도구 라벨 + 새 창 열기 */
+  .studio-fs-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.55rem 1.1rem;
+    background: var(--tool-card);
+    border-bottom: 1px solid var(--tool-line);
+    flex-shrink: 0;
+  }
+  .studio-fs-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    color: var(--tool-mute);
+    letter-spacing: 0.02em;
+  }
+  .studio-fs-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--tool-accent);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+    animation: studioFsPulse 2.4s ease-in-out infinite;
+  }
+  @keyframes studioFsPulse {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18); }
+    50%      { box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.06); }
+  }
+  .studio-fs-label {
+    color: var(--tool-ink);
+    font-weight: 500;
+  }
+  .studio-fs-tag {
+    font-size: 0.62rem;
+    color: var(--tool-accent);
+    background: var(--tool-accent-soft);
+    padding: 0.12rem 0.45rem;
+    border-radius: 100px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .studio-fs-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    color: var(--tool-mute);
+    text-decoration: none;
+    padding: 0.35rem 0.7rem;
+    border-radius: 100px;
+    transition: color 0.18s, background 0.18s;
+    letter-spacing: -0.01em;
+  }
+  .studio-fs-link:hover {
+    color: var(--tool-ink);
+    background: var(--tool-bg);
+  }
+  .studio-fs-link svg { flex-shrink: 0; }
+
+  /* iframe — 남은 공간 모두 채움 */
+  .studio-fs-iframe {
+    flex: 1;
+    width: 100%;
+    border: none;
+    display: block;
+    background: var(--tool-bg);
+  }
+
+  /* Fallback (load 실패 시 iframe 위 덮어 표시) */
+  .studio-fs-fallback {
+    position: absolute;
+    inset: 0;
+    background: var(--tool-card);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    z-index: 5;
+  }
+  .studio-fs-fallback[hidden] { display: none; }
+  .studio-fb-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--tool-bg);
+    color: var(--tool-mute);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.25rem;
+  }
+  .studio-fb-icon svg { width: 24px; height: 24px; }
+  .studio-fs-fallback h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--tool-ink);
+    margin-bottom: 0.7rem;
+    letter-spacing: -0.022em;
+  }
+  .studio-fs-fallback p {
+    font-size: 0.88rem;
+    line-height: 1.65;
+    color: var(--tool-mute);
+    max-width: 38rem;
+    margin: 0;
+  }
+  .studio-fs-fallback p strong { color: var(--tool-ink); font-weight: 500; }
+
+  /* ─── Studio 미리보기용 placeholder (배포 시 제거) ─── */
+  .studio-fs-placeholder {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    background: var(--tool-bg);
+  }
+  .studio-fs-placeholder-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--tool-accent-soft);
+    color: var(--tool-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.25rem;
+  }
+  .studio-fs-placeholder-icon svg { width: 28px; height: 28px; }
+  .studio-fs-placeholder-tag {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    color: var(--tool-accent);
+    background: var(--tool-accent-soft);
+    padding: 0.25rem 0.7rem;
+    border-radius: 100px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 1.1rem;
+  }
+  .studio-fs-placeholder h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--tool-ink);
+    margin-bottom: 0.7rem;
+    letter-spacing: -0.022em;
+    max-width: 32ch;
+  }
+  .studio-fs-placeholder p {
+    font-size: 0.88rem;
+    line-height: 1.65;
+    color: var(--tool-mute);
+    max-width: 38rem;
+    margin: 0 0 1.75rem;
+  }
+  .studio-fs-placeholder p strong { color: var(--tool-ink); font-weight: 500; }
+  .studio-fs-placeholder-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.65rem 1.15rem;
+    background: var(--tool-ink);
+    color: var(--tool-card);
+    font-family: var(--sans);
+    font-size: 0.86rem;
+    font-weight: 500;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: opacity 0.18s, transform 0.18s;
+    letter-spacing: -0.012em;
+  }
+  .studio-fs-placeholder-btn:hover {
+    opacity: 0.88;
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: 760px) {
+    .studio-fs-toolbar { padding: 0.5rem 0.85rem; }
+    .studio-fs-meta { font-size: 0.7rem; }
+    .studio-fs-link span { display: none; }
+    .studio-fs-link { padding: 0.4rem; }
+  }
+
+  /* ─── (deprecated) Studio Placeholder — 이전 placeholder 잔여 스타일 ─── */
+  .studio-placeholder {
+    background: var(--bg);
+    padding: 6rem 0 7rem;
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    border-top: 1px solid var(--line);
+  }
+  .studio-ph-inner {
+    max-width: 44rem;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .studio-ph-icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 1.5rem;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .studio-ph-icon svg { width: 28px; height: 28px; }
+  .studio-ph-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--accent);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.35rem 0.8rem;
+    background: var(--accent-soft);
+    border-radius: 100px;
+    margin-bottom: 1.5rem;
+  }
+  .studio-placeholder h2 {
+    font-size: clamp(1.9rem, 3.6vw, 2.5rem);
+    line-height: 1.2;
+    font-weight: 600;
+    margin: 0 auto 1.25rem;
+    letter-spacing: -0.032em;
+    max-width: 18ch;
+  }
+  .studio-placeholder p {
+    font-size: 1rem;
+    line-height: 1.75;
+    color: var(--ink-soft);
+    max-width: 56ch;
+    margin: 0 auto 2.5rem;
+  }
+  .studio-ph-back {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 0.7rem 1.2rem;
+    font-family: var(--sans);
+    font-size: 0.88rem;
+    font-weight: 500;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: border-color 0.18s, transform 0.18s;
+  }
+  .studio-ph-back:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+
+  /* ─────────────── 공용 타이포 ─────────────── */
+  h1, h2, h3, h4 {
+    color: var(--ink);
+    font-weight: 600;
+    letter-spacing: -0.028em;
+  }
+
+  p.lead, .concept-def, .concept-note, .concept-intro-p {
+    text-wrap: pretty;
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.75rem;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--ink-mute);
+    font-weight: 500;
+  }
+  .eyebrow .dot {
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .section-num {
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    color: var(--ink-fade);
+    margin-bottom: 0.95rem;
+    font-weight: 500;
+  }
+
+  h2 {
+    font-size: clamp(1.9rem, 3.6vw, 2.5rem);
+    line-height: 1.18;
+    font-weight: 600;
+    margin-bottom: 1.1rem;
+    max-width: 22ch;
+    letter-spacing: -0.032em;
+  }
+  h2.h2-wide {
+    max-width: none;
+  }
+
+  .lead {
+    font-size: 0.98rem;
+    color: var(--ink-soft);
+    line-height: 1.7;
+    max-width: 58ch;
+    text-wrap: pretty;
+  }
+  .lead.lead-wide {
+    max-width: 80ch;
+  }
+
+  p {
+    font-size: 0.97rem;
+    color: var(--ink-soft);
+    line-height: 1.7;
+    max-width: 58ch;
+    text-wrap: pretty;
+  }
+
+  /* ─────────────── HOME (랜딩) ─────────────── */
+  /* tab-home은 nav-tab 버튼에 노출되지 않는 hidden 진입 탭.
+     What is IRD?의 hero를 그대로 재사용하되, 배경에 차이를 주고
+     일러스트에 둥실둥실 모션, 하단 더보기 버튼 추가 */
+  .home {
+    /* LNB(60px)가 absolute로 hero 위에 떠있음. 두 탭(home, tab-concept) 모두
+       hero 시작 위치를 동일하게 두기 위해 padding-top에 LNB 높이만큼 추가.
+       home에는 LNB가 보이지 않지만 같은 위치 유지를 위해 padding은 동일. */
+    padding: calc(4.5rem + 60px) 0 8rem;
+    position: relative;
+    overflow: hidden;
+    min-height: calc(100vh - var(--nav-h, 64px));
+    /* 진입점 화면 — 다른 탭과 살짝 차별된 차분한 톤, 전반적으로 퍼져있는 그라데이션 */
+    background:
+      radial-gradient(ellipse 120% 90% at 50% 0%, rgba(37, 99, 235, 0.06), transparent 70%),
+      radial-gradient(ellipse 110% 80% at 50% 100%, rgba(168, 162, 158, 0.10), transparent 70%),
+      radial-gradient(ellipse 130% 100% at 0% 50%, rgba(99, 102, 241, 0.04), transparent 65%),
+      radial-gradient(ellipse 130% 100% at 100% 50%, rgba(217, 213, 207, 0.08), transparent 65%),
+      linear-gradient(180deg, #f4f2ed 0%, #f7f5f0 50%, #f4f2ed 100%);
+  }
+  .home .container {
+    position: relative;
+  }
+  .home-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+  @media (min-width: 900px) {
+    .home-inner {
+      max-width: 580px;
+    }
+    /* 버튼 그리드를 텍스트와 일러스트 하단의 중간쯤에 배치 */
+    .home-inner .home-explore-grid {
+      margin-top: 3rem;
+    }
+  }
+  @media (min-width: 1100px) {
+    .home-inner {
+      max-width: 620px;
+    }
+    .home-inner .home-explore-grid {
+      margin-top: 3.5rem;
+    }
+  }
+  .home h1 {
+    font-size: clamp(1.9rem, 3.4vw, 2.75rem);
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.035em;
+    max-width: 28ch;
+    margin: 0;
+    color: var(--ink);
+  }
+  .home .home-sub {
+    font-size: clamp(0.96rem, 1.2vw, 1.05rem);
+    color: var(--ink-mute);
+    max-width: 50ch;
+    line-height: 1.75;
+    text-wrap: pretty;
+    margin: 0;
+  }
+  /* h1과 sub 간격 hero와 동일하게 타이트 */
+  .home-inner h1 + .home-sub {
+    margin-top: -0.5rem;
+  }
+  .home .hero-meta-row {
+    margin-top: 0.5rem;
+  }
+  .home .hero-illus {
+    width: 100%;
+    margin-top: 2.5rem;
+    max-width: 320px;
+  }
+  @media (min-width: 900px) {
+    .home .hero-illus {
+      position: absolute;
+      right: -4rem;
+      top: 2.25rem;
+      margin-top: 0;
+      width: 380px;
+      max-width: 380px;
+      pointer-events: none;
+      animation: homeFloat 6s ease-in-out infinite;
+      -webkit-mask-image: linear-gradient(to right, #000 0%, #000 45%, transparent 95%);
+      mask-image: linear-gradient(to right, #000 0%, #000 45%, transparent 95%);
+    }
+  }
+  @media (min-width: 1100px) {
+    .home .hero-illus {
+      right: -6rem;
+      width: 440px;
+      max-width: 440px;
+      -webkit-mask-image: linear-gradient(to right, #000 0%, #000 50%, transparent 95%);
+      mask-image: linear-gradient(to right, #000 0%, #000 50%, transparent 95%);
+    }
+  }
+  @media (min-width: 1280px) {
+    .home .hero-illus {
+      right: -8rem;
+      width: 480px;
+      max-width: 480px;
+      -webkit-mask-image: linear-gradient(to right, #000 0%, #000 55%, transparent 95%);
+      mask-image: linear-gradient(to right, #000 0%, #000 55%, transparent 95%);
+    }
+  }
+  .home .hero-illus svg { width: 100%; height: auto; display: block; }
+
+  /* 둥실둥실 위아래 모션 */
+  @keyframes homeFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+
+  /* 4개 탭으로 이어지는 진입 버튼들 */
+  .home-explore-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+    margin-top: 1.5rem;
+    width: 100%;
+    max-width: 540px;
+  }
+  @media (max-width: 600px) {
+    .home-explore-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .home-explore-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.7rem;
+    padding: 0.85rem 1.1rem;
+    background: var(--bg-card);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font-family: var(--sans);
+    font-size: 0.88rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+    text-align: left;
+    position: relative;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  }
+  .home-explore-btn:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.1);
+  }
+  .home-explore-btn-meta {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    color: var(--ink-mute);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  .home-explore-btn:hover .home-explore-btn-meta {
+    color: var(--accent);
+  }
+  .home-explore-btn-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+    flex: 1;
+  }
+  .home-explore-btn-arrow {
+    display: inline-flex;
+    color: var(--ink-mute);
+    transition: color 0.18s ease, transform 0.18s ease;
+    flex-shrink: 0;
+  }
+  .home-explore-btn-arrow svg {
+    width: 14px;
+    height: 14px;
+  }
+  .home-explore-btn:hover .home-explore-btn-arrow {
+    color: var(--accent);
+    transform: translateX(3px);
+  }
+
+  @media (max-width: 760px) {
+    .home {
+      padding: calc(2rem + 60px) 0 5rem;
+    }
+    .home .hero-illus {
+      animation: none;
+    }
+  }
+
+  /* ─────────────── HERO ─────────────── */
+
+  .hero {
+    /* LNB(60px)가 absolute로 hero 위에 떠있음 — 보정 padding으로 콘텐츠가 가려지지 않게 */
+    padding: calc(4.5rem + 60px) 0 5.5rem;
+    position: relative;
+    overflow: hidden;
+    /* home → hero 전환 시 자연스러운 색감 이어짐을 위해 살짝 동일 톤 그라데이션 */
+    background:
+      radial-gradient(ellipse 100% 60% at 50% 0%, rgba(37, 99, 235, 0.04), transparent 60%),
+      radial-gradient(ellipse 90% 50% at 50% 100%, rgba(168, 162, 158, 0.05), transparent 65%),
+      var(--bg);
+  }
+
+  .hero .container {
+    position: relative;
+  }
+
+  .hero-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+
+  /* 데스크톱: 텍스트 컨텐츠 영역은 왼쪽으로 제한, 오른쪽은 일러스트 자리로 비움 */
+  @media (min-width: 900px) {
+    .hero-inner {
+      max-width: 580px;
+    }
+  }
+  @media (min-width: 1100px) {
+    .hero-inner {
+      max-width: 620px;
+    }
+  }
+
+  /* 일러스트: hero 오른쪽에 절대 배치. 컨텐츠 높이만큼 세로로 길게. */
+  .hero-illus {
+    width: 100%;
+    margin-top: 2.5rem;
+    max-width: 320px;
+  }
+  @media (min-width: 900px) {
+    .hero-illus {
+      position: absolute;
+      right: -4rem;
+      /* eyebrow 배지 바로 아래에서 시작 */
+      top: 2.25rem;
+      margin-top: 0;
+      width: 380px;
+      max-width: 380px;
+      pointer-events: none;
+      /* 오른쪽 끝을 부드럽게 페이드 아웃 (일부러 잘린 느낌 유지) */
+      -webkit-mask-image: linear-gradient(to right, #000 0%, #000 45%, transparent 95%);
+      mask-image: linear-gradient(to right, #000 0%, #000 45%, transparent 95%);
+    }
+  }
+  @media (min-width: 1100px) {
+    .hero-illus {
+      right: -6rem;
+      width: 440px;
+      max-width: 440px;
+      -webkit-mask-image: linear-gradient(to right, #000 0%, #000 50%, transparent 95%);
+      mask-image: linear-gradient(to right, #000 0%, #000 50%, transparent 95%);
+    }
+  }
+  @media (min-width: 1280px) {
+    .hero-illus {
+      right: -8rem;
+      width: 480px;
+      max-width: 480px;
+      -webkit-mask-image: linear-gradient(to right, #000 0%, #000 55%, transparent 95%);
+      mask-image: linear-gradient(to right, #000 0%, #000 55%, transparent 95%);
+    }
+  }
+  .hero-illus svg { width: 100%; height: auto; display: block; }
+
+  /* h1과 sub 간격 타이트하게 */
+  .hero-inner h1 + .hero-sub {
+    margin-top: -0.5rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(1.9rem, 3.4vw, 2.75rem);
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.035em;
+    max-width: 28ch;
+  }
+
+  .hero-sub {
+    font-size: clamp(0.96rem, 1.2vw, 1.05rem);
+    color: var(--ink-mute);
+    max-width: 50ch;
+    line-height: 1.75;
+    text-wrap: pretty;
+  }
+
+  .hero-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 0.25rem;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--ink-fade);
+  }
+  .hero-meta-row .divider {
+    width: 20px; height: 1px;
+    background: var(--line-strong);
+  }
+
+  /* ─── X Conversation Card ─── */
+  .x-quote {
+    margin-top: 2.75rem;
+    max-width: 58ch;
+    width: 100%;
+  }
+
+  .x-quote-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding: 0.35rem 0.75rem;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--ink-mute);
+    font-weight: 500;
+  }
+  .x-quote-label .dot {
+    width: 5px; height: 5px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .x-quote-intro {
+    font-size: 0.94rem;
+    color: var(--ink-mute);
+    line-height: 1.7;
+    margin-bottom: 1.1rem;
+    text-wrap: pretty;
+  }
+
+  .x-quote-outro {
+    font-size: 0.94rem;
+    color: var(--ink-mute);
+    line-height: 1.7;
+    margin-top: 1.25rem;
+    text-wrap: pretty;
+  }
+  .x-quote-outro strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .x-card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .x-card:hover {
+    border-color: var(--line-strong);
+  }
+
+  a.x-post {
+    padding: 1.25rem 1.35rem;
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    gap: 0.85rem;
+    position: relative;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.15s;
+    align-items: start;
+  }
+  a.x-post:hover {
+    background: var(--bg-soft);
+  }
+  a.x-post:hover .x-external {
+    color: var(--ink);
+  }
+
+  /* 연속 스레드: 포스트 사이에 구분선 없이 자연스럽게 이어짐 */
+  a.x-post + a.x-post {
+    padding-top: 0.65rem;
+  }
+
+  /* 스레드 연결선 */
+  a.x-post.has-thread .x-avatar {
+    position: relative;
+  }
+  a.x-post.has-thread .x-avatar::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: calc(100% + 4px);
+    transform: translateX(-50%);
+    width: 1.5px;
+    height: calc(100% + 2rem);
+    background: var(--line);
+  }
+
+  .x-external {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-fade);
+    transition: color 0.15s;
+    margin-top: 2px;
+  }
+  .x-external svg {
+    width: 13px; height: 13px;
+  }
+
+  .x-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--bg-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.82rem;
+    color: var(--ink);
+    flex-shrink: 0;
+    font-family: var(--sans);
+    letter-spacing: -0.02em;
+  }
+  .x-avatar.verified {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  .x-body { min-width: 0; }
+
+  .x-header {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-bottom: 0.3rem;
+    flex-wrap: wrap;
+  }
+  .x-name {
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: var(--ink);
+    letter-spacing: -0.015em;
+  }
+  .x-verify {
+    width: 14px; height: 14px;
+    background: var(--accent);
+    color: white;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.5rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .x-handle,
+  .x-dot,
+  .x-date {
+    font-size: 0.82rem;
+    color: var(--ink-mute);
+  }
+  .x-dot { opacity: 0.5; }
+
+  .x-text {
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: var(--ink);
+    letter-spacing: -0.012em;
+    word-break: keep-all;
+  }
+  .x-text.reply-text {
+    font-weight: 500;
+  }
+
+  .x-meta {
+    margin-top: 0.65rem;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    font-size: 0.76rem;
+    color: var(--ink-fade);
+  }
+  .x-meta .stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .x-meta .stat svg {
+    width: 12px; height: 12px;
+    opacity: 0.65;
+  }
+
+  /* ─────────────── SECTION BASE ─────────────── */
+  section { padding: 5.5rem 0; }
+  .section-head { margin-bottom: 2.75rem; }
+
+  /* ─────────────── PROBLEM ─────────────── */
+  .problem { border-top: 1px solid var(--line); }
+
+  .demo-wrap {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+  }
+
+  /* 좌측 demo-side의 reflection 박스: 하단 고정, 본문과 명확히 분리 */
+  .demo-side.left .demo-reflection {
+    margin-top: auto;
+    padding-top: 1.25rem;
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .demo-side.left .demo-reflection.pre-show {
+    opacity: 0;
+    transition: none;
+    pointer-events: none;
+  }
+  .demo-side.left .demo-reflection.animating {
+    transition: opacity 0.7s ease;
+  }
+  .demo-side.left .demo-reflection .reflection-inner {
+    padding: 0.75rem 0.9rem;
+    background: var(--accent-soft);
+    border-radius: var(--radius-sm);
+  }
+  .demo-reflection .label-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.4rem;
+  }
+  .demo-reflection .ic {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 0.62rem;
+    font-weight: 700;
+    font-family: var(--sans);
+    line-height: 1;
+  }
+  .demo-reflection .reflection-label {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    color: var(--accent);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .demo-reflection .question {
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    line-height: 1.55;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    transition: opacity 0.2s ease;
+  }
+
+  /* 본문(visible)에 충분한 하단 여백을 줘서 reflection과 시각적 분리 */
+  .demo-side.left .content {
+    margin-bottom: 1.5rem;
+  }
+
+  .demo-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-soft);
+    overflow-x: auto;
+  }
+  .demo-tab {
+    background: transparent;
+    border: none;
+    padding: 1rem 1.15rem;
+    font-family: var(--sans);
+    font-size: 0.86rem;
+    color: var(--ink-mute);
+    cursor: pointer;
+    transition: all 0.15s;
+    border-bottom: 2px solid transparent;
+    font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
+    letter-spacing: -0.01em;
+  }
+  .demo-tab:hover { color: var(--ink); }
+  .demo-tab.active {
+    color: var(--ink);
+    border-bottom-color: var(--ink);
+    background: var(--bg-card);
+  }
+
+  .demo-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 260px;
+  }
+  @media (max-width: 760px) {
+    .demo-body { grid-template-columns: 1fr; min-height: 0; }
+  }
+
+  .demo-side { padding: 2rem 1.75rem; }
+  .demo-side.left {
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+  }
+  @media (max-width: 760px) {
+    .demo-side.left { border-right: none; border-bottom: 1px solid var(--line); }
+  }
+
+  .demo-side .label {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--ink-fade);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    opacity: 1;
+  }
+  .demo-side .label.pre-show {
+    opacity: 0;
+    transform: translateY(4px);
+    transition: none;
+  }
+  .demo-side .label.animating {
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  .demo-side .label .bar {
+    width: 18px; height: 2px;
+    background: var(--ink-fade);
+    border-radius: 1px;
+  }
+  .demo-side.right .label .bar { background: var(--accent); }
+  .demo-side.right .label { color: var(--accent); }
+
+  .demo-side .content {
+    font-size: 0.98rem;
+    color: var(--ink);
+    font-weight: 500;
+    line-height: 1.6;
+    letter-spacing: -0.015em;
+    /* 기본: 보임 */
+    opacity: 1;
+  }
+  /* 시퀀스 시작 전: 즉시 숨김 (transition 없음) */
+  .demo-side .content.pre-show {
+    opacity: 0;
+    transform: translateY(6px);
+    transition: none;
+  }
+  /* 시퀀스 진행: 부드럽게 페이드인 */
+  .demo-side .content.animating {
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+
+  .demo-side .tech-list {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    line-height: 2;
+    color: var(--ink-soft);
+  }
+  .demo-side .tech-list .line {
+    display: block;
+    opacity: 0;
+    transform: translateX(-4px);
+    animation: none;
+  }
+  .demo-side .tech-list.active .line { animation: slideIn 0.35s forwards; }
+  .demo-side .tech-list.active .line:nth-child(1) { animation-delay: 0.08s; }
+  .demo-side .tech-list.active .line:nth-child(2) { animation-delay: 0.26s; }
+  .demo-side .tech-list.active .line:nth-child(3) { animation-delay: 0.44s; }
+  .demo-side .tech-list.active .line:nth-child(4) { animation-delay: 0.62s; }
+  .demo-side .tech-list.active .line.total { animation-delay: 0.88s; }
+  @keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
+  .demo-side .tech-list .accent { color: var(--accent); font-weight: 500; }
+  .demo-side .tech-list .total {
+    display: block;
+    margin-top: 0.85rem;
+    padding-top: 0.85rem;
+    border-top: 1px dashed var(--line-strong);
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .problem-closer {
+    margin-top: 2.5rem;
+    padding: 1.75rem 1.85rem;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  }
+  .problem-closer .pc-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--ink-mute);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 0.85rem;
+  }
+  .problem-closer .pc-label::before {
+    content: '';
+    width: 14px;
+    height: 1.5px;
+    background: var(--accent);
+    border-radius: 1px;
+  }
+  .problem-closer p {
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    line-height: 1.45;
+    max-width: none;
+  }
+  .problem-closer p + p {
+    margin-top: 0.4rem;
+  }
+  .problem-closer p strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  /* ─────────────── TENSION ─────────────── */
+  .tension { background: var(--bg-soft); }
+
+  .tension-layout {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 3.5rem;
+    align-items: center;
+  }
+  @media (max-width: 860px) {
+    .tension-layout { grid-template-columns: 1fr; gap: 2.25rem; }
+  }
+
+  .tension-viz {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 1.75rem;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+  }
+  .tension-viz svg { width: 100%; height: 100%; }
+
+  .tension-text h3 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 0.8rem;
+    letter-spacing: -0.02em;
+  }
+  .tension-text p {
+    font-size: 0.97rem;
+    line-height: 1.7;
+    margin-bottom: 1.75rem;
+  }
+
+  .tension-pills {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .tension-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.85rem 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    transition: border-color 0.15s;
+  }
+  .tension-pill:hover { border-color: var(--line-strong); }
+  .tension-pill .swatch {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .tension-pill .name {
+    font-weight: 500;
+    color: var(--ink);
+    font-size: 0.92rem;
+    letter-spacing: -0.015em;
+  }
+  .tension-pill .desc {
+    color: var(--ink-mute);
+    font-size: 0.83rem;
+    margin-top: 0.1rem;
+  }
+
+  .reframe-caption {
+    margin-top: 2.75rem;
+    margin-bottom: 1rem;
+    font-size: 0.86rem;
+    line-height: 1.65;
+    color: var(--ink-mute);
+    max-width: none;
+  }
+  .reframe-caption strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .reframe-box {
+    margin-top: 0;
+    padding: 1.5rem 1.75rem;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 1.5rem;
+    align-items: center;
+  }
+  @media (max-width: 640px) {
+    .reframe-box { grid-template-columns: 1fr; gap: 1.25rem; }
+    .reframe-box .arrow { transform: rotate(90deg); margin: 0 auto; }
+  }
+  .reframe-box .tag {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--ink-fade);
+    margin-bottom: 0.4rem;
+    font-weight: 500;
+  }
+  .reframe-box .label {
+    font-weight: 600;
+    color: var(--ink);
+    font-size: 0.98rem;
+    letter-spacing: -0.015em;
+  }
+  .reframe-box .desc {
+    font-size: 0.86rem;
+    color: var(--ink-mute);
+    margin-top: 0.3rem;
+  }
+  .reframe-box .after .label { color: var(--accent); }
+  .reframe-box .arrow {
+    font-family: var(--mono);
+    color: var(--ink-fade);
+    font-size: 1.1rem;
+  }
+
+  /* ─────────────── AMBIGUITY ─────────────── */
+  .ambi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+  @media (max-width: 800px) { .ambi-grid { grid-template-columns: 1fr; } }
+
+  .ambi-card {
+    padding: 1.85rem;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    transition: all 0.2s;
+  }
+  .ambi-card:hover {
+    border-color: var(--line-strong);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+  }
+
+  .ambi-card .ic {
+    width: 36px; height: 36px;
+    background: var(--accent-soft);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 1rem;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 1.2rem;
+  }
+
+  .ambi-card h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.55rem;
+    line-height: 1.35;
+    letter-spacing: -0.018em;
+  }
+  .ambi-card p {
+    font-size: 0.88rem;
+    color: var(--ink-mute);
+    line-height: 1.6;
+  }
+
+  .ambi-callout {
+    margin-top: 2.5rem;
+    padding: 1.75rem 1.85rem;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1.1rem;
+    align-items: start;
+  }
+  .ambi-callout .callout-mark {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    font-family: var(--sans);
+    line-height: 1;
+    margin-top: 0.1rem;
+  }
+  .ambi-callout .callout-body {
+    min-width: 0;
+  }
+  .ambi-callout .callout-label {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--ink-mute);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  .ambi-callout p {
+    font-size: 1rem;
+    line-height: 1.65;
+    color: var(--ink-soft);
+    max-width: none;
+    margin: 0;
+  }
+  .ambi-callout p strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* ─────────────── CONCEPT ─────────────── */
+  .concept { background: var(--bg-soft); }
+
+  .concept-head {
+    text-align: center;
+    margin-bottom: 3.5rem;
+    max-width: 46rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .concept-title {
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    font-weight: 600;
+    line-height: 1.08;
+    letter-spacing: -0.038em;
+    margin: 1.25rem auto 1.5rem;
+    max-width: 14ch;
+  }
+  .concept-title .accent-word { color: var(--accent); }
+  .concept-title .abbr {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--ink-fade);
+    font-weight: 500;
+    margin-top: 1.1rem;
+  }
+
+  .concept-def {
+    font-size: 1rem;
+    color: var(--ink-soft);
+    line-height: 1.7;
+    max-width: 56ch;
+    margin: 0 auto;
+    text-wrap: pretty;
+  }
+
+  .concept-intro-p {
+    margin: 0 auto 2.5rem;
+    text-align: center;
+    max-width: none;
+    font-size: 0.92rem;
+    color: var(--ink-mute);
+    line-height: 1.65;
+    text-wrap: pretty;
+  }
+  .concept-intro-p .intro-slash {
+    display: block;
+    color: var(--ink-fade);
+    font-size: 0.85rem;
+    margin-bottom: 0.6rem;
+    letter-spacing: 0.05em;
+  }
+
+  .stages {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+  }
+  @media (max-width: 800px) { .stages { grid-template-columns: 1fr; } }
+
+  /* ─── 비교 레이아웃: 기존 프로세스 + IRD 렌즈 ─── */
+  .stages-compare {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .row-label {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.7rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .row-label .row-tag {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--ink-fade);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.6rem;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 100px;
+  }
+  .row-label .row-name {
+    font-size: 0.88rem;
+    color: var(--ink-mute);
+  }
+
+  /* 상단 행: 기존 프로세스 — 살짝 흐리게 + 컴팩트하게 표현 */
+  .stages.baseline-row {
+    background: var(--bg-card);
+  }
+  .stages.baseline-row .stage {
+    padding: 1.4rem 1.6rem 1.5rem;
+  }
+  .stages.baseline-row .stage .step {
+    margin-bottom: 0.85rem;
+  }
+  .stages.baseline-row .stage h3 {
+    color: var(--ink-soft);
+    font-size: 1.05rem;
+    margin-bottom: 0.25rem;
+  }
+  .stages.baseline-row .stage .ko {
+    color: var(--ink-fade);
+    font-size: 0.82rem;
+    margin-bottom: 0.7rem;
+  }
+  .stages.baseline-row .stage p {
+    color: var(--ink-mute);
+    font-size: 0.84rem;
+    line-height: 1.55;
+  }
+
+  /* 중앙 인디케이터: 두 행 사이에 "IRD가 더하는 렌즈" 표시 */
+  .overlay-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    justify-content: center;
+    padding: 1.1rem 0;
+  }
+  .overlay-indicator .line-arrow {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--line-strong), transparent);
+    max-width: 120px;
+  }
+  .overlay-indicator .overlay-label {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--accent);
+    font-weight: 500;
+    padding: 0.3rem 0.85rem;
+    background: var(--accent-soft);
+    border-radius: 100px;
+    white-space: nowrap;
+  }
+
+  /* 하단 행: IRD 렌즈가 적용된 단계들 */
+  .stages.ird-row {
+    border: 1px solid var(--accent);
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.06);
+    background: var(--bg-card);
+    position: relative;
+  }
+  .stages.ird-row::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(239, 246, 255, 0.5), transparent);
+    pointer-events: none;
+    border-radius: var(--radius-lg);
+  }
+  .stages.ird-row .stage {
+    position: relative;
+    z-index: 1;
+  }
+  .stages.ird-row .stage .step-num {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .stages.ird-row .stage .step-label {
+    color: var(--accent);
+  }
+  .stages.ird-row .stage .ko {
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .stage {
+    padding: 2.1rem 1.85rem 2.25rem;
+    border-right: 1px solid var(--line);
+  }
+  .stage:last-child { border-right: none; }
+  @media (max-width: 800px) {
+    .stage { border-right: none; border-bottom: 1px solid var(--line); }
+    .stage:last-child { border-bottom: none; }
+  }
+
+  .stage .step {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1.35rem;
+  }
+  .stage .step-num {
+    width: 24px; height: 24px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-soft);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .stage .step-label {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--ink-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 500;
+  }
+
+  .stage h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.3rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .stage .ko {
+    display: block;
+    font-size: 0.86rem;
+    color: var(--ink-mute);
+    font-weight: 400;
+    margin-bottom: 0.95rem;
+  }
+  .stage p {
+    font-size: 0.89rem;
+    color: var(--ink-mute);
+    line-height: 1.6;
+  }
+
+  .stage .attr {
+    margin-top: 1.35rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.6rem;
+    background: var(--accent-soft);
+    border-radius: var(--radius-sm);
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .stage .attr .dot {
+    width: 5px; height: 5px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .concept-note {
+    margin-top: 4rem;
+    text-align: center;
+    font-size: 0.96rem;
+    color: var(--ink-soft);
+    max-width: none;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.65;
+    text-wrap: pretty;
+  }
+
+  /* ─────────────── REBOUND EFFECT ─────────────── */
+  .rebound {
+    background: var(--bg);
+    padding: 8rem 0 8.5rem;
+    border-top: 1px solid var(--line);
+    position: relative;
+    overflow: hidden;
+  }
+  /* 배경: 매우 옅은 컬러 그라데이션 (페이지의 다른 영역과 차별) */
+  .rebound::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1100px;
+    height: 600px;
+    background: radial-gradient(ellipse at center, rgba(37, 99, 235, 0.04), transparent 70%);
+    pointer-events: none;
+  }
+  .rebound > .container { position: relative; z-index: 1; }
+
+  /* 섹션 헤더: 큰 타이포 + 작은 eyebrow */
+  .rebound-head {
+    max-width: 56rem;
+    margin: 0 auto 4.5rem;
+    text-align: left;
+  }
+  .rb-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--ink-mute);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.35rem 0.75rem;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    margin-bottom: 1.75rem;
+  }
+  .rb-eyebrow .dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .rb-title {
+    font-size: clamp(1.9rem, 3.6vw, 2.5rem);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.032em;
+    margin-bottom: 1.5rem;
+    max-width: 32ch;
+    color: var(--ink);
+  }
+  .rb-title .rb-strike {
+    color: var(--ink-mute);
+    position: relative;
+    display: inline-block;
+  }
+  .rb-title .rb-strike::before {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    top: 56%;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 1px;
+  }
+  .rb-lead {
+    font-size: 1rem;
+    line-height: 1.75;
+    color: var(--ink-soft);
+    max-width: 78ch;
+  }
+  .rb-lead strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* "예를 들면," 작은 도입문 */
+  .rb-stories-intro {
+    max-width: 56rem;
+    margin: 0 auto 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    font-size: 0.85rem;
+    color: var(--ink-mute);
+    letter-spacing: -0.005em;
+  }
+  .rb-stories-intro-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-shrink: 0;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--ink-mute);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.7rem;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 100px;
+  }
+  .rb-stories-intro-text {
+    color: var(--ink-mute);
+    font-weight: 500;
+  }
+
+  /* 자동차 → 디지털: 가로 2열 컴팩트 비교 */
+  .rb-stories {
+    max-width: 56rem;
+    margin: 0 auto 5rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    align-items: stretch;
+  }
+  @media (max-width: 760px) {
+    .rb-stories {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      max-width: 32rem;
+    }
+  }
+
+  .rb-story {
+    padding: 1.65rem 1.65rem 1.85rem;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* 헤더: 이모지 + 제목 + 우측 정렬 라벨 */
+  .rb-story-header {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-bottom: 1.25rem;
+  }
+  .rb-story-emoji {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: var(--bg-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.05rem;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .rb-story-title {
+    font-size: 0.96rem;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.018em;
+    line-height: 1.35;
+    flex: 1;
+    min-width: 0;
+  }
+  .rb-story-tagwrap {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-shrink: 0;
+  }
+  .rb-story-tagtext {
+    font-size: 0.74rem;
+    color: var(--ink-mute);
+    font-weight: 500;
+    letter-spacing: -0.005em;
+  }
+  .rb-story-tag {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  /* Flow: 점진적 블루 보더 + 연한 fill (의도 → 그런데 → 결과) */
+  .rb-flow {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+  .rb-flow-step {
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    padding: 0.95rem 1.05rem 1.05rem;
+  }
+
+  /* 2단계 — 그런데: 옅은 블루 fill + 옅은 블루 보더 */
+  .rb-flow-step.rb-flow-turn {
+    background: #f5f9ff;
+    border-color: rgba(37, 99, 235, 0.25);
+  }
+  .rb-flow-step.rb-flow-turn .rb-flow-label {
+    color: #60a5fa;
+  }
+
+  /* 3단계 — 결과: 한 톤 더 진한 옅은 블루 fill + 액센트 보더 */
+  .rb-flow-step.rb-flow-result {
+    background: #eff6ff;
+    border-color: rgba(37, 99, 235, 0.55);
+  }
+  .rb-flow-step.rb-flow-result .rb-flow-label {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .rb-flow-step.rb-flow-result .rb-flow-body {
+    color: var(--ink-soft);
+  }
+
+  .rb-flow-label {
+    font-size: 0.72rem;
+    color: var(--ink-mute);
+    font-weight: 500;
+    margin-bottom: 0.35rem;
+    letter-spacing: -0.005em;
+  }
+  .rb-flow-headline {
+    font-size: 0.94rem;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.45;
+    letter-spacing: -0.018em;
+    margin-bottom: 0.4rem;
+  }
+  .rb-flow-body {
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: var(--ink-mute);
+    margin: 0;
+  }
+
+  /* 단계 사이 화살표 */
+  .rb-flow-arrow {
+    text-align: center;
+    color: var(--ink-fade);
+    font-size: 0.85rem;
+    line-height: 1;
+    padding: 0.45rem 0;
+    user-select: none;
+  }
+
+  @media (max-width: 560px) {
+    .rb-story {
+      padding: 1.5rem 1.5rem 1.65rem;
+    }
+    .rb-flow-headline {
+      font-size: 0.92rem;
+    }
+  }
+
+  /* 3가지 반등: 인포그래픽 라인 (카드 X) */
+  /* 3가지 반등: 세로 sticky 카드 스택 */
+  .rb-types {
+    max-width: 56rem;
+    margin: 0 auto 1.25rem;
+  }
+  .rb-types-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .rb-types-label {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--ink-mute);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  .rb-types-line {
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+
+  /* 가로 동그라미 인포그래픽 — 세 패턴을 한 줄에 배치 */
+  .rb-types-stack {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 1.5rem 0 2rem;
+    position: relative;
+  }
+  /* 동그라미 사이 연결 점선 */
+  .rb-types-stack::before {
+    content: '';
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    top: 50%;
+    height: 1px;
+    border-top: 1px dashed var(--line-strong);
+    transform: translateY(-0.5px);
+    z-index: 0;
+  }
+
+  .rb-type-orb {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+    /* 등장 애니메이션 기본: 숨김 */
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .rb-type-orb.in-view {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  /* 스태거 딜레이 — 카드들이 차례로 등장 */
+  .rb-type-orb:nth-child(1) { transition-delay: 0s; }
+  .rb-type-orb:nth-child(2) { transition-delay: 0.18s; }
+  .rb-type-orb:nth-child(3) { transition-delay: 0.36s; }
+
+  /* 동그라미 카드 본체 */
+  .rb-orb {
+    width: 270px;
+    height: 270px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    padding: 2.2rem 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    flex-shrink: 0;
+  }
+
+  .rb-orb-num {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 0.2rem 0.6rem;
+    border-radius: 100px;
+    margin-bottom: 0.85rem;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+  }
+  .rb-orb-name {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    margin-bottom: 0.85rem;
+  }
+  .rb-orb-name .ko {
+    font-size: 1.08rem;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.022em;
+    line-height: 1.2;
+  }
+  .rb-orb-name .en {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    color: var(--ink-fade);
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+  .rb-orb p {
+    font-size: 0.84rem;
+    line-height: 1.6;
+    color: var(--ink-mute);
+    margin: 0;
+    max-width: 24ch;
+  }
+
+  /* 모바일: 세로 스택으로 전환 */
+  @media (max-width: 760px) {
+    .rb-types-stack {
+      flex-direction: column;
+      gap: 1.25rem;
+      padding: 1rem 0 1.5rem;
+    }
+    .rb-types-stack::before {
+      display: none;
+    }
+    .rb-orb {
+      width: 240px;
+      height: 240px;
+      padding: 2rem 1.6rem;
+    }
+    .rb-orb p { font-size: 0.82rem; }
+  }
+
+  /* Jevons 역설: 모던 인용 (SVG 따옴표 + 깔끔한 메타) */
+  .rb-jevons {
+    max-width: 50rem;
+    margin: 0 auto 2.25rem;
+    text-align: center;
+    padding-bottom: 3.5rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .rb-jevons .rb-j-mark {
+    width: 18px;
+    height: 18px;
+    color: var(--ink-fade);
+    opacity: 0.7;
+    margin: 0 auto 0.7rem;
+    display: block;
+  }
+  .rb-jevons .rb-j-quote {
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.5;
+    letter-spacing: -0.012em;
+    color: var(--ink-soft);
+    margin: 0 auto 0.5rem;
+    max-width: 36ch;
+  }
+  .rb-jevons .rb-j-cite {
+    font-size: 0.78rem;
+    color: var(--ink-mute);
+    line-height: 1.6;
+    margin: 0 auto;
+    max-width: 50ch;
+    text-wrap: pretty;
+  }
+  .rb-jevons .rb-j-name {
+    font-family: var(--mono);
+    color: var(--ink-soft);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    font-size: 0.72rem;
+  }
+  .rb-jevons .rb-j-sep {
+    margin: 0 0.45rem;
+    color: var(--ink-fade);
+  }
+  .rb-jevons .rb-j-meta {
+    color: var(--ink-mute);
+  }
+
+  /* CTA: 작고 컴팩트한 인라인 카드 (대문짝 X) */
+  .rb-cta-wrap {
+    max-width: 56rem;
+    margin: 0 auto;
+    text-align: center;
+    padding-top: 0.5rem;
+  }
+  .rb-cta-mini {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.7rem 1.1rem 0.7rem 0.95rem;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    font-family: var(--sans);
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+  }
+  .rb-cta-mini:hover {
+    border-color: var(--accent);
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.1);
+    transform: translateY(-1px);
+  }
+  .rb-cta-mini:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .rb-cta-mini-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+    animation: pulseRb 2s ease-in-out infinite;
+  }
+  @keyframes pulseRb {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+  }
+  .rb-cta-mini-meta {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    color: var(--ink-mute);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding-right: 0.7rem;
+    border-right: 1px solid var(--line);
+  }
+  .rb-cta-mini-name {
+    font-size: 0.88rem;
+    color: var(--ink);
+    font-weight: 500;
+    letter-spacing: -0.012em;
+  }
+  .rb-cta-mini-arrow {
+    font-size: 0.95rem;
+    color: var(--ink-mute);
+    line-height: 1;
+    transition: transform 0.2s ease, color 0.2s ease;
+  }
+  .rb-cta-mini:hover .rb-cta-mini-arrow {
+    transform: translate(2px, -2px);
+    color: var(--accent);
+  }
+  .rb-cta-mini-hint {
+    font-size: 0.84rem;
+    color: var(--ink-mute);
+    line-height: 1.7;
+    margin: 1rem auto 0;
+    max-width: 56ch;
+  }
+  @media (max-width: 560px) {
+    .rb-cta-mini {
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 0.7rem 1rem;
+    }
+    .rb-cta-mini-meta {
+      border-right: none;
+      padding-right: 0;
+      width: 100%;
+      text-align: center;
+      order: -1;
+    }
+  }
+
+  /* ─────────────── THINK ─────────────── */
+  .think-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .think-card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 1.9rem 1.9rem 1.75rem;
+    transition: border-color 0.2s;
+  }
+  .think-card:hover { border-color: var(--line-strong); }
+  .think-card.revealed { border-color: var(--ink); }
+
+  .think-card .tq-head {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.1rem;
+  }
+  .think-card .tq-num {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    color: var(--ink);
+    padding: 0.28rem 0.55rem;
+    background: var(--bg-soft);
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+  }
+  .think-card .tq-hint {
+    font-size: 0.8rem;
+    color: var(--ink-fade);
+  }
+
+  .think-card .question {
+    font-size: clamp(1.08rem, 1.7vw, 1.28rem);
+    font-weight: 500;
+    line-height: 1.45;
+    color: var(--ink);
+    margin-bottom: 0.9rem;
+    letter-spacing: -0.024em;
+  }
+
+  .think-card .context {
+    font-size: 0.92rem;
+    color: var(--ink-mute);
+    line-height: 1.65;
+    max-width: 58ch;
+  }
+
+  .think-card .reveal-btn {
+    margin-top: 1.4rem;
+    background: transparent;
+    border: 1px solid var(--line-strong);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 0.82rem;
+    padding: 0.55rem 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    letter-spacing: -0.01em;
+  }
+  .think-card .reveal-btn:hover {
+    background: var(--ink);
+    color: var(--bg);
+    border-color: var(--ink);
+  }
+  .think-card .reveal-btn .arr {
+    transition: transform 0.2s;
+    display: inline-block;
+  }
+  .think-card.revealed .reveal-btn .arr { transform: rotate(90deg); }
+
+  .think-card .reveal-content {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.4s ease, opacity 0.3s, margin-top 0.3s;
+  }
+  .think-card.revealed .reveal-content {
+    max-height: 600px;
+    opacity: 1;
+    margin-top: 1.5rem;
+  }
+  .think-card .hint-body {
+    padding: 1.4rem 1.5rem;
+    background: var(--bg-soft);
+    border-radius: var(--radius);
+    font-size: 0.93rem;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+  .think-card .hint-body .lead-in {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--ink-mute);
+    margin-bottom: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+  }
+  .think-card .hint-body strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* ─────────────── PRACTICE ─────────────── */
+  .practice { background: var(--bg); border-top: 1px solid var(--line); }
+
+  /* ─── Hints 통합 도구 섹션 ─── */
+  /* Hints 안의 텍스트도 도구 톤으로 */
+  .hints-tool h2,
+  .hints-tool h3 { color: var(--tool-ink); }
+  .hints-tool h2 .ink-strong { color: var(--tool-ink); }
+  .hints-tool .lead { color: var(--tool-mute); }
+  .hints-tool .section-num { color: var(--tool-mute); }
+  .hints-tool .hl-light {
+    background: var(--tool-bg);
+    color: var(--tool-ink);
+  }
+  /* WIP card */
+  .hints-tool .wip-card {
+    border-color: var(--tool-line);
+    background: var(--tool-card);
+  }
+  .hints-tool .wip-icon {
+    background: var(--tool-accent-soft);
+    color: var(--tool-accent);
+  }
+  .hints-tool .wip-tag {
+    color: var(--tool-accent);
+    background: var(--tool-accent-soft);
+  }
+  .hints-tool .wip-text h3 { color: var(--tool-ink); }
+  .hints-tool .wip-text p { color: var(--tool-mute); }
+
+  /* ─── Tab 도구 영역의 둥근 프레임 (Studio 톤에 맞춰 컴팩트하게) ─── */
+  .tab-frame {
+    background: var(--tool-card);
+    border: 1px solid var(--tool-line);
+    border-radius: 8px;
+    padding: 0;
+    box-shadow: 0 1px 2px rgba(20, 20, 20, 0.02);
+    overflow: hidden;
+  }
+  .practice .tab-frame {
+    background: var(--bg-card);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  }
+  .hints-tool .tab-frame {
+    background: var(--tool-card);
+    border-color: var(--tool-line);
+    box-shadow: 0 4px 20px rgba(20, 20, 20, 0.04), 0 1px 2px rgba(20, 20, 20, 0.02);
+  }
+  /* 도구 frame 공용 toolbar (Studio 패턴 통일) */
+  .tool-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.55rem 1.1rem;
+    background: var(--tool-card);
+    border-bottom: 1px solid var(--tool-line);
+  }
+  .tool-toolbar-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    color: var(--tool-mute);
+    letter-spacing: 0.02em;
+  }
+  .tool-toolbar-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--tool-accent);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+    animation: studioFsPulse 2.4s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+  .tool-toolbar-label {
+    color: var(--tool-ink);
+    font-weight: 500;
+  }
+  .tool-toolbar-tag {
+    font-size: 0.62rem;
+    color: var(--tool-accent);
+    background: var(--tool-accent-soft);
+    padding: 0.12rem 0.45rem;
+    border-radius: 999px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .tool-toolbar-meta-sep {
+    color: var(--tool-line);
+    margin: 0 0.1rem;
+  }
+  .tool-toolbar-info {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--tool-mute);
+    letter-spacing: 0.02em;
+  }
+  /* frame 내부 컨텐츠 padding (toolbar 아래) */
+  .tool-body {
+    padding: 2.5rem 2.5rem 3rem;
+  }
+  /* hints-frame 사용 안 함 → hints-tool에서도 동일 패턴 */
+  @media (max-width: 760px) {
+    .tab-frame {
+      border-radius: 6px;
+    }
+    .tool-toolbar {
+      padding: 0.5rem 0.85rem;
+    }
+    .tool-toolbar-info { display: none; }
+    .tool-body {
+      padding: 1.85rem 1.4rem 2.25rem;
+    }
+  }
+
+  /* ─── Hints sub-tab 플로팅 네비 ─── */
+  /* sub-tabs: segmented control 스타일 — 두 칸이 하나의 박스 안에서 나뉘어 있음 */
+  .hints-subtabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2.5rem;
+  }
+  .hints-subtabs-inner {
+    display: inline-flex;
+    align-items: stretch;
+    gap: 0;
+    border: 1px solid var(--tool-line);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--tool-card);
+  }
+  .hints-subtab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    background: var(--tool-card);
+    border: none;
+    padding: 0.65rem 1.2rem;
+    font-family: var(--sans);
+    font-size: 0.85rem;
+    color: var(--tool-mute);
+    cursor: pointer;
+    transition: color 0.18s ease, background 0.18s ease;
+    letter-spacing: -0.012em;
+    white-space: nowrap;
+    position: relative;
+  }
+  .hints-subtab + .hints-subtab {
+    border-left: 1px solid var(--tool-line);
+  }
+  .hints-subtab:hover {
+    color: var(--tool-ink);
+    background: var(--tool-bg);
+  }
+  .hints-subtab.active {
+    color: var(--tool-ink);
+    background: var(--tool-accent-soft);
+    font-weight: 500;
+  }
+  .hints-subtab-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--tool-mute);
+    flex-shrink: 0;
+    transition: background 0.18s ease;
+  }
+  .hints-subtab.active .hints-subtab-dot {
+    background: var(--tool-accent);
+  }
+  .hints-subtab-soon {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--tool-mute);
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border: 1px solid var(--tool-line);
+    margin-left: 0.2rem;
+  }
+
+  /* sub-panel 전환 */
+  .hints-subpanel { display: block; animation: hintsFadeIn 0.3s ease; }
+  .hints-subpanel[hidden] { display: none; }
+  @keyframes hintsFadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .practice-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.85rem;
+  }
+  @media (max-width: 760px) { .practice-grid { grid-template-columns: 1fr; } }
+
+  .p-card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 1.85rem;
+    transition: all 0.2s;
+  }
+  .p-card:hover {
+    border-color: var(--line-strong);
+    transform: translateY(-2px);
+  }
+
+  /* hints-tool 안에서는 도구 톤(sage + 베이지 그레이)으로 */
+  .hints-tool .p-card {
+    background: var(--tool-card);
+    border-color: var(--tool-line);
+    border-radius: 6px;
+  }
+  .hints-tool .p-card:hover {
+    border-color: var(--tool-accent);
+  }
+  .hints-tool .p-card .ic {
+    background: var(--tool-bg);
+    color: var(--tool-ink);
+    border-radius: 3px;
+  }
+  .hints-tool .p-card .tag {
+    color: var(--tool-mute);
+  }
+  .hints-tool .p-card h4 {
+    color: var(--tool-ink);
+  }
+  .hints-tool .p-card p {
+    color: var(--tool-mute);
+  }
+  .hints-tool .p-card .q {
+    border-top-color: var(--tool-line);
+    color: var(--tool-mute);
+  }
+  .hints-tool .p-card .q .prefix {
+    color: var(--tool-accent);
+  }
+  /* wide 카드는 Studio AI 리플렉션의 prompt 박스 스타일 (연한 블루 배경 + 블루 보더 + 진한 블루 텍스트) */
+  .hints-tool .p-card.wide {
+    background: var(--tool-accent-soft);
+    border: 1px solid color-mix(in oklab, var(--tool-accent) 30%, var(--tool-line));
+    color: #1e3a8a;
+  }
+  .hints-tool .p-card.wide .ic {
+    background: var(--tool-card);
+    color: var(--tool-accent);
+    border: 1px solid color-mix(in oklab, var(--tool-accent) 25%, var(--tool-line));
+  }
+  .hints-tool .p-card.wide .tag {
+    color: var(--tool-accent);
+  }
+  .hints-tool .p-card.wide h4 {
+    color: #1e3a8a;
+  }
+  .hints-tool .p-card.wide p {
+    color: #1e3a8a;
+    opacity: 0.85;
+    max-width: none;
+    width: 100%;
+  }
+  .hints-tool .p-card.wide .q {
+    border-top-color: color-mix(in oklab, var(--tool-accent) 20%, var(--tool-line));
+    color: #1e3a8a;
+    opacity: 0.85;
+  }
+  .hints-tool .p-card.wide .q .prefix {
+    color: var(--tool-accent);
+    opacity: 1;
+  }
+
+  .p-card.wide {
+    grid-column: 1 / -1;
+    background: var(--ink);
+    color: var(--bg);
+    border-color: var(--ink);
+  }
+
+  .p-card .ic-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.2rem;
+  }
+  .p-card .ic {
+    width: 32px; height: 32px;
+    background: var(--bg-soft);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink);
+  }
+  .p-card.wide .ic {
+    background: rgba(255,255,255,0.1);
+    color: var(--bg);
+  }
+  .p-card .tag {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--ink-fade);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+  }
+  .p-card.wide .tag { color: rgba(255,255,255,0.55); }
+
+  .p-card h4 {
+    font-size: 1.02rem;
+    font-weight: 600;
+    margin-bottom: 0.55rem;
+    line-height: 1.35;
+    letter-spacing: -0.02em;
+  }
+  .p-card.wide h4 { color: var(--bg); }
+
+  .p-card p {
+    font-size: 0.88rem;
+    color: var(--ink-mute);
+    line-height: 1.6;
+  }
+  .p-card.wide p { color: rgba(255,255,255,0.72); }
+
+  .p-card .q {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--line);
+    font-size: 0.86rem;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+  }
+  .p-card.wide .q {
+    color: rgba(255,255,255,0.92);
+    border-top-color: rgba(255,255,255,0.15);
+  }
+  .p-card .q .prefix {
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    margin-right: 0.4rem;
+  }
+  .p-card.wide .q .prefix { color: #bef264; }
+
+  /* ─────────────── WIP card (Think 섹션 placeholder) ─────────────── */
+  .wip-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.4rem;
+    padding: 2.25rem 2.4rem;
+    background: var(--bg-card);
+    border: 1px dashed var(--line-strong);
+    border-radius: 16px;
+    max-width: 56rem;
+    margin: 0 auto;
+  }
+  .wip-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .wip-icon svg { width: 22px; height: 22px; }
+  .wip-text { flex: 1; min-width: 0; }
+  .wip-tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.6rem;
+    background: var(--accent-soft);
+    border-radius: 100px;
+    margin-bottom: 0.7rem;
+  }
+  .wip-text h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 0.55rem;
+    letter-spacing: -0.022em;
+  }
+  .wip-text p {
+    font-size: 0.92rem;
+    line-height: 1.65;
+    color: var(--ink-mute);
+    margin: 0;
+  }
+  @media (max-width: 560px) {
+    .wip-card {
+      flex-direction: column;
+      gap: 1rem;
+      padding: 1.85rem 1.85rem;
+    }
+  }
+
+  /* ─────────────── CLOSING ─────────────── */
+  .closing {
+    padding: 7rem 0 5rem;
+    text-align: center;
+    background: var(--bg);
+  }
+
+  .closing-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.4rem 0.95rem;
+    background: var(--accent-soft);
+    border-radius: 100px;
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 1.75rem;
+  }
+  .closing-mark::before {
+    content: '';
+    width: 5px; height: 5px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .closing h2 {
+    max-width: 52ch;
+    margin: 0 auto 1.25rem;
+    font-size: clamp(1.85rem, 4vw, 2.5rem);
+    line-height: 1.4;
+  }
+
+  .closing h2 .ink-accent {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .closing p {
+    max-width: 44ch;
+    margin: 0 auto;
+    color: var(--ink-mute);
+    font-size: 0.96rem;
+    line-height: 1.7;
+    text-wrap: pretty;
+  }
+
+  footer {
+    padding: 2.5rem 1.75rem;
+    border-top: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    color: var(--ink-fade);
+    text-align: center;
+    font-weight: 500;
+  }
+  footer .inner {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem 1.25rem;
+    align-items: center;
+  }
+  footer .sep { color: var(--line-strong); }
+  footer .footer-credit {
+    margin-top: 0.85rem;
+    font-size: 0.72rem;
+    color: var(--ink-fade);
+    opacity: 0.75;
+  }
+
+  /* ─────────────── SCROLL REVEAL ─────────────── */
+  .reveal-on-scroll {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal-on-scroll.in-view {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ NAV ═══════════ -->
+<nav id="nav">
+  <div class="nav-inner">
+    <a href="#tab-home" class="nav-brand" data-tab="tab-home">
+      <svg viewBox="0 0 24 24" fill="none">
+        <rect x="3" y="3" width="18" height="18" rx="5" fill="#0a0a0a"/>
+        <circle cx="9" cy="9" r="1.5" fill="#d9f99d"/>
+        <circle cx="15" cy="9" r="1.5" fill="#fafaf9" opacity="0.35"/>
+        <circle cx="9" cy="15" r="1.5" fill="#fafaf9" opacity="0.35"/>
+        <circle cx="15" cy="15" r="1.5" fill="#2563eb"/>
+      </svg>
+      <span>IRD Toolkit</span>
+    </a>
+    <div class="nav-tabs" role="tablist">
+      <button type="button" class="nav-tab active" data-tab="tab-concept" role="tab">
+        What is IRD?
+      </button>
+      <button type="button" class="nav-tab" data-tab="tab-hints" role="tab">
+        Hints to begin with
+      </button>
+      <button type="button" class="nav-tab" data-tab="tab-translator" role="tab">
+        Backend Translator
+      </button>
+      <button type="button" class="nav-tab" data-tab="tab-studio" role="tab">
+        Rebound Design Studio
+      </button>
+    </div>
+    <button type="button" id="loginBtn" class="nav-cta" aria-label="로그인 (준비 중)">로그인</button>
+  </div>
+</nav>
+
+<!-- 탭별 섹션 점프용 LNB (nav 외부 — fixed 오버레이 레이어) -->
+<div class="nav-sublinks" id="navSublinks">
+  <div class="nav-sublinks-inner" data-for-tab="tab-concept">
+    <a href="#problem">배경</a>
+    <a href="#tension">특징</a>
+    <a href="#concept">IRD 개념</a>
+    <a href="#rebound">반등 효과</a>
+  </div>
+</div>
+
+<!-- ═══════════ TAB 0: HOME (랜딩 화면) ═══════════ -->
+<div id="tab-home" class="tab-panel active" role="tabpanel">
+
+<section class="home" id="home">
+  <div class="container">
+    <div class="home-inner">
+      <div class="eyebrow">
+        <span class="dot"></span>
+        <span>A new lens for UX designers</span>
+      </div>
+
+      <h1>
+        '좋은 UX'가 무시할 수 없는<br class="br-md">
+        <span class="hl-accent">환경 비용</span>을 치르고 있다면,<br class="br-md">
+        우리는 어떤 결정을 해야 할까요?
+      </h1>
+
+      <p class="home-sub">
+        자동재생, 무한 스크롤, 실시간 저장. 우리가 대체로 '좋은 UX'를 위해 해오던 디자인 결정들은
+        어딘가의 서버에서 에너지로 환산되어서, 환경적 비용을 치르고 있어요. 이제는 UX 너머
+        그 환경적 영향까지 함께 다룰 수 있는 디자인 감각이 필요한 시대예요.
+      </p>
+
+      <div class="home-explore-grid">
+        <button type="button" class="home-explore-btn" data-target-tab="tab-concept">
+          <span class="home-explore-btn-content">
+            <span class="home-explore-btn-meta">What is IRD?</span>
+            <span>IRD가 뭔가요?</span>
+          </span>
+          <span class="home-explore-btn-arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14M13 5l7 7-7 7"/>
+            </svg>
+          </span>
+        </button>
+
+        <button type="button" class="home-explore-btn" data-target-tab="tab-hints">
+          <span class="home-explore-btn-content">
+            <span class="home-explore-btn-meta">Guide</span>
+            <span>어디서부터 시작할까요?</span>
+          </span>
+          <span class="home-explore-btn-arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14M13 5l7 7-7 7"/>
+            </svg>
+          </span>
+        </button>
+
+        <button type="button" class="home-explore-btn" data-target-tab="tab-translator">
+          <span class="home-explore-btn-content">
+            <span class="home-explore-btn-meta">Lens</span>
+            <span>백엔드 연산과 연결지어 볼래요</span>
+          </span>
+          <span class="home-explore-btn-arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14M13 5l7 7-7 7"/>
+            </svg>
+          </span>
+        </button>
+
+        <button type="button" class="home-explore-btn" data-target-tab="tab-studio">
+          <span class="home-explore-btn-content">
+            <span class="home-explore-btn-meta">Canvas</span>
+            <span>반등 효과를 상상해볼래요</span>
+          </span>
+          <span class="home-explore-btn-arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14M13 5l7 7-7 7"/>
+            </svg>
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 일러스트 (둥실둥실 모션) -->
+    <div class="hero-illus" aria-hidden="true">
+      <svg viewBox="0 0 340 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- ─── 상단 라벨 ─── -->
+        <text x="30" y="22" font-family="Geist Mono, monospace" font-size="9"
+              fill="#a3a3a3" letter-spacing="0.5">UI  /  WHAT USERS SEE</text>
+
+        <!-- ─── 상단: UI 와이어프레임 (브라우저 창) ─── -->
+        <g>
+          <!-- 카드 배경 -->
+          <rect x="30" y="30" width="280" height="160" rx="12"
+                fill="#ffffff" stroke="#e8e8e5" stroke-width="1"/>
+
+          <!-- 상단 바 -->
+          <rect x="30" y="30" width="280" height="28" rx="12"
+                fill="#fafaf9" stroke="#e8e8e5" stroke-width="1"/>
+          <path d="M30 58 L310 58" stroke="#e8e8e5" stroke-width="1"/>
+
+          <!-- 윈도우 컨트롤 닷 -->
+          <circle cx="46" cy="44" r="3.5" fill="#e8e8e5"/>
+          <circle cx="58" cy="44" r="3.5" fill="#e8e8e5"/>
+          <circle cx="70" cy="44" r="3.5" fill="#e8e8e5"/>
+
+          <!-- 주소바 -->
+          <rect x="98" y="37" width="195" height="14" rx="4" fill="#f4f4f2"/>
+
+          <!-- 콘텐츠: 제목 라인 -->
+          <rect x="50" y="78" width="100" height="11" rx="3" fill="#404040"/>
+
+          <!-- 본문 라인들 -->
+          <rect x="50" y="100" width="230" height="5" rx="2" fill="#e8e8e5"/>
+          <rect x="50" y="112" width="210" height="5" rx="2" fill="#e8e8e5"/>
+          <rect x="50" y="124" width="185" height="5" rx="2" fill="#e8e8e5"/>
+
+          <!-- 버튼 -->
+          <rect x="50" y="148" width="80" height="30" rx="7" fill="#eff6ff"/>
+          <rect x="66" y="158" width="48" height="9" rx="3" fill="#93c5fd"/>
+
+          <!-- 플레이 아이콘 -->
+          <circle cx="268" cy="163" r="16" fill="#fafaf9" stroke="#e8e8e5" stroke-width="1"/>
+          <path d="M264 156 L276 163 L264 170 Z" fill="#525252"/>
+        </g>
+
+        <!-- ─── 중간: 데이터 흐름 ─── -->
+        <g>
+          <line x1="110" y1="198" x2="110" y2="270"
+                stroke="#d4d4d1" stroke-width="1" stroke-dasharray="2 3"/>
+          <line x1="170" y1="198" x2="170" y2="270"
+                stroke="#d4d4d1" stroke-width="1" stroke-dasharray="2 3"/>
+          <line x1="230" y1="198" x2="230" y2="270"
+                stroke="#d4d4d1" stroke-width="1" stroke-dasharray="2 3"/>
+
+          <circle cx="110" cy="210" r="3" fill="#93c5fd">
+            <animate attributeName="cy" values="198;270;198" dur="3.5s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0;1;0" dur="3.5s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="170" cy="234" r="3" fill="#93c5fd">
+            <animate attributeName="cy" values="198;270;198" dur="2.8s" begin="0.7s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0;1;0" dur="2.8s" begin="0.7s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="230" cy="222" r="3" fill="#93c5fd">
+            <animate attributeName="cy" values="198;270;198" dur="3.2s" begin="1.4s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0;1;0" dur="3.2s" begin="1.4s" repeatCount="indefinite"/>
+          </circle>
+        </g>
+
+        <!-- ─── 하단 라벨 ─── -->
+        <text x="55" y="290" font-family="Geist Mono, monospace" font-size="9"
+              fill="#a3a3a3" letter-spacing="0.5">INFRASTRUCTURE  /  WHAT WORKS BEHIND</text>
+
+        <!-- ─── 하단: 서버 렉 ─── -->
+        <g>
+          <!-- 서버 렉 본체 -->
+          <rect x="55" y="300" width="230" height="90" rx="10"
+                fill="#fafaf9" stroke="#e8e8e5" stroke-width="1"/>
+
+          <!-- 렉 라벨 영역 -->
+          <rect x="55" y="300" width="230" height="18" rx="10"
+                fill="#f4f4f2" stroke="#e8e8e5" stroke-width="1"/>
+          <path d="M55 318 L285 318" stroke="#e8e8e5" stroke-width="1"/>
+
+          <!-- 라벨 더미 -->
+          <circle cx="68" cy="309" r="2" fill="#d4d4d1"/>
+          <rect x="78" y="306" width="60" height="6" rx="2" fill="#d4d4d1"/>
+          <rect x="248" y="306" width="28" height="6" rx="2" fill="#d4d4d1"/>
+
+          <!-- 서버 유닛 행 1 -->
+          <g>
+            <rect x="68" y="328" width="204" height="17" rx="4" fill="#ffffff" stroke="#e8e8e5" stroke-width="1"/>
+            <circle cx="79" cy="336" r="2.5" fill="#93c5fd"/>
+            <rect x="92" y="334" width="84" height="5" rx="2" fill="#e8e8e5"/>
+            <rect x="254" y="333" width="10" height="8" rx="1.5" fill="#e8e8e5"/>
+          </g>
+
+          <!-- 서버 유닛 행 2 -->
+          <g>
+            <rect x="68" y="350" width="204" height="17" rx="4" fill="#ffffff" stroke="#e8e8e5" stroke-width="1"/>
+            <circle cx="79" cy="358" r="2.5" fill="#d4d4d1">
+              <animate attributeName="fill" values="#d4d4d1;#93c5fd;#d4d4d1" dur="2.5s" repeatCount="indefinite"/>
+            </circle>
+            <rect x="92" y="356" width="110" height="5" rx="2" fill="#e8e8e5"/>
+            <rect x="254" y="355" width="10" height="8" rx="1.5" fill="#e8e8e5"/>
+          </g>
+
+          <!-- 서버 유닛 행 3 -->
+          <g>
+            <rect x="68" y="372" width="204" height="17" rx="4" fill="#ffffff" stroke="#e8e8e5" stroke-width="1"/>
+            <circle cx="79" cy="380" r="2.5" fill="#93c5fd">
+              <animate attributeName="opacity" values="1;0.35;1" dur="1.8s" repeatCount="indefinite"/>
+            </circle>
+            <rect x="92" y="378" width="76" height="5" rx="2" fill="#e8e8e5"/>
+            <rect x="254" y="377" width="10" height="8" rx="1.5" fill="#e8e8e5"/>
+          </g>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+</div><!-- /tab-home -->
+
+<!-- ═══════════ TAB 1: What is IRD? ═══════════ -->
+<div id="tab-concept" class="tab-panel" role="tabpanel">
+
+<!-- ═══════════ HERO ═══════════ -->
+<header class="hero">
+  <div class="container">
+    <div class="hero-inner">
+      <div class="eyebrow">
+        <span class="dot"></span>
+        <span>A new lens for UX designers</span>
+      </div>
+
+      <h1>
+        '좋은 UX'가 무시할 수 없는<br class="br-md">
+        <span class="hl-accent">환경 비용</span>을 치르고 있다면,<br class="br-md">
+        우리는 어떤 결정을 해야 할까요?
+      </h1>
+
+      <p class="hero-sub">
+        자동재생, 무한 스크롤, 실시간 저장. 우리가 대체로 '좋은 UX'를 위해 해오던 디자인 결정들은
+        어딘가의 서버에서 에너지로 환산되어서, 환경적 비용을 치르고 있어요. 이제는 UX 너머
+        그 환경적 영향까지 함께 다룰 수 있는 디자인 감각이 필요한 시대예요.
+      </p>
+
+        <div class="hero-illus" aria-hidden="true">
+          <svg viewBox="0 0 340 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- ─── 상단 라벨 ─── -->
+            <text x="30" y="22" font-family="Geist Mono, monospace" font-size="9"
+                  fill="#a3a3a3" letter-spacing="0.5">UI  /  WHAT USERS SEE</text>
+
+            <!-- ─── 상단: UI 와이어프레임 (브라우저 창) ─── -->
+            <g>
+              <!-- 카드 배경 -->
+              <rect x="30" y="30" width="280" height="160" rx="12"
+                    fill="#ffffff" stroke="#e8e8e5" stroke-width="1"/>
+
+              <!-- 상단 바 -->
+              <rect x="30" y="30" width="280" height="28" rx="12"
+                    fill="#fafaf9" stroke="#e8e8e5" stroke-width="1"/>
+              <path d="M30 58 L310 58" stroke="#e8e8e5" stroke-width="1"/>
+
+              <!-- 윈도우 컨트롤 닷 -->
+              <circle cx="46" cy="44" r="3.5" fill="#e8e8e5"/>
+              <circle cx="58" cy="44" r="3.5" fill="#e8e8e5"/>
+              <circle cx="70" cy="44" r="3.5" fill="#e8e8e5"/>
+
+              <!-- 주소바 -->
+              <rect x="98" y="37" width="195" height="14" rx="4" fill="#f4f4f2"/>
+
+              <!-- 콘텐츠: 제목 라인 -->
+              <rect x="50" y="78" width="100" height="11" rx="3" fill="#404040"/>
+
+              <!-- 본문 라인들 -->
+              <rect x="50" y="100" width="230" height="5" rx="2" fill="#e8e8e5"/>
+              <rect x="50" y="112" width="210" height="5" rx="2" fill="#e8e8e5"/>
+              <rect x="50" y="124" width="185" height="5" rx="2" fill="#e8e8e5"/>
+
+              <!-- 버튼 -->
+              <rect x="50" y="148" width="80" height="30" rx="7" fill="#eff6ff"/>
+              <rect x="66" y="158" width="48" height="9" rx="3" fill="#93c5fd"/>
+
+              <!-- 플레이 아이콘 -->
+              <circle cx="268" cy="163" r="16" fill="#fafaf9" stroke="#e8e8e5" stroke-width="1"/>
+              <path d="M264 156 L276 163 L264 170 Z" fill="#525252"/>
+            </g>
+
+            <!-- ─── 중간: 데이터 흐름 ─── -->
+            <g>
+              <line x1="110" y1="198" x2="110" y2="270"
+                    stroke="#d4d4d1" stroke-width="1" stroke-dasharray="2 3"/>
+              <line x1="170" y1="198" x2="170" y2="270"
+                    stroke="#d4d4d1" stroke-width="1" stroke-dasharray="2 3"/>
+              <line x1="230" y1="198" x2="230" y2="270"
+                    stroke="#d4d4d1" stroke-width="1" stroke-dasharray="2 3"/>
+
+              <circle cx="110" cy="210" r="3" fill="#93c5fd">
+                <animate attributeName="cy" values="198;270;198" dur="3.5s" repeatCount="indefinite"/>
+                <animate attributeName="opacity" values="0;1;0" dur="3.5s" repeatCount="indefinite"/>
+              </circle>
+              <circle cx="170" cy="234" r="3" fill="#93c5fd">
+                <animate attributeName="cy" values="198;270;198" dur="2.8s" begin="0.7s" repeatCount="indefinite"/>
+                <animate attributeName="opacity" values="0;1;0" dur="2.8s" begin="0.7s" repeatCount="indefinite"/>
+              </circle>
+              <circle cx="230" cy="222" r="3" fill="#93c5fd">
+                <animate attributeName="cy" values="198;270;198" dur="3.2s" begin="1.4s" repeatCount="indefinite"/>
+                <animate attributeName="opacity" values="0;1;0" dur="3.2s" begin="1.4s" repeatCount="indefinite"/>
+              </circle>
+            </g>
+
+            <!-- ─── 하단 라벨 ─── -->
+            <text x="55" y="290" font-family="Geist Mono, monospace" font-size="9"
+                  fill="#a3a3a3" letter-spacing="0.5">INFRASTRUCTURE  /  WHAT WORKS BEHIND</text>
+
+            <!-- ─── 하단: 서버 렉 ─── -->
+            <g>
+              <!-- 서버 렉 본체 -->
+              <rect x="55" y="300" width="230" height="90" rx="10"
+                    fill="#fafaf9" stroke="#e8e8e5" stroke-width="1"/>
+
+              <!-- 렉 라벨 영역 -->
+              <rect x="55" y="300" width="230" height="18" rx="10"
+                    fill="#f4f4f2" stroke="#e8e8e5" stroke-width="1"/>
+              <path d="M55 318 L285 318" stroke="#e8e8e5" stroke-width="1"/>
+
+              <!-- 라벨 더미 -->
+              <circle cx="68" cy="309" r="2" fill="#d4d4d1"/>
+              <rect x="78" y="306" width="60" height="6" rx="2" fill="#d4d4d1"/>
+              <rect x="248" y="306" width="28" height="6" rx="2" fill="#d4d4d1"/>
+
+              <!-- 서버 유닛 행 1 -->
+              <g>
+                <rect x="68" y="328" width="204" height="17" rx="4" fill="#ffffff" stroke="#e8e8e5" stroke-width="1"/>
+                <circle cx="79" cy="336" r="2.5" fill="#93c5fd"/>
+                <rect x="92" y="334" width="84" height="5" rx="2" fill="#e8e8e5"/>
+                <rect x="254" y="333" width="10" height="8" rx="1.5" fill="#e8e8e5"/>
+              </g>
+
+              <!-- 서버 유닛 행 2 -->
+              <g>
+                <rect x="68" y="350" width="204" height="17" rx="4" fill="#ffffff" stroke="#e8e8e5" stroke-width="1"/>
+                <circle cx="79" cy="358" r="2.5" fill="#d4d4d1">
+                  <animate attributeName="fill" values="#d4d4d1;#93c5fd;#d4d4d1" dur="2.5s" repeatCount="indefinite"/>
+                </circle>
+                <rect x="92" y="356" width="110" height="5" rx="2" fill="#e8e8e5"/>
+                <rect x="254" y="355" width="10" height="8" rx="1.5" fill="#e8e8e5"/>
+              </g>
+
+              <!-- 서버 유닛 행 3 -->
+              <g>
+                <rect x="68" y="372" width="204" height="17" rx="4" fill="#ffffff" stroke="#e8e8e5" stroke-width="1"/>
+                <circle cx="79" cy="380" r="2.5" fill="#93c5fd">
+                  <animate attributeName="opacity" values="1;0.35;1" dur="1.8s" repeatCount="indefinite"/>
+                </circle>
+                <rect x="92" y="378" width="76" height="5" rx="2" fill="#e8e8e5"/>
+                <rect x="254" y="377" width="10" height="8" rx="1.5" fill="#e8e8e5"/>
+              </g>
+            </g>
+          </svg>
+        </div>
+
+      <div class="hero-meta-row">
+        <span>읽는 시간 · 약 10분</span>
+        <span class="divider"></span>
+        <span>Infrastructural Reflective Design</span>
+      </div>
+
+      <div class="x-quote">
+        <div class="x-quote-label">
+          <span>A thread on X · April 2025</span>
+        </div>
+
+        <p class="x-quote-intro">
+          작년 봄, X에서 화제가 된 대화예요. 어떤 유저가 던진 가벼운 질문이 SNS에서
+          바이럴되면서, OpenAI CEO가 직접 답을 달기도 했는데요. AI와 나누는 대화 끝의
+          마지막 작은 인사말 한 마디의 영향만 계산해도, 실제로 어마어마한 전기요금으로
+          이어진다는 사실이 수면 위로 올라왔어요.
+        </p>
+
+        <div class="x-card">
+          <!-- 원본 포스트 -->
+          <a class="x-post has-thread" href="https://x.com/tomieinlove/status/1912287012058722659" target="_blank" rel="noopener noreferrer">
+            <div class="x-avatar">t</div>
+            <div class="x-body">
+              <div class="x-header">
+                <span class="x-name">tomie</span>
+                <span class="x-handle">@tomieinlove</span>
+                <span class="x-dot">·</span>
+                <span class="x-date">Apr 15, 2025</span>
+              </div>
+              <div class="x-text">
+                I wonder how much money OpenAI has lost in electricity costs from people saying "please" and "thank you" to their models.
+              </div>
+              <div class="x-meta">
+                <span class="stat">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg>
+                  5.7M views
+                </span>
+              </div>
+            </div>
+            <div class="x-external">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                <path d="M7 17L17 7M8 7h9v9"/>
+              </svg>
+            </div>
+          </a>
+
+          <!-- Altman 답변 -->
+          <a class="x-post" href="https://x.com/sama/status/1912646035979239430" target="_blank" rel="noopener noreferrer">
+            <div class="x-avatar verified">S</div>
+            <div class="x-body">
+              <div class="x-header">
+                <span class="x-name">Sam Altman</span>
+                <span class="x-verify">✓</span>
+                <span class="x-handle">@sama</span>
+                <span class="x-dot">·</span>
+                <span class="x-date">Apr 16, 2025</span>
+              </div>
+              <div class="x-text reply-text">
+                tens of millions of dollars well spent—you never know
+              </div>
+            </div>
+            <div class="x-external">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                <path d="M7 17L17 7M8 7h9v9"/>
+              </svg>
+            </div>
+          </a>
+        </div>
+
+        <p class="x-quote-outro">
+          눈에 보이지는 않지만, UX 디자인은 곧 환경 영향으로도 이어져요. AI/ML, 블록체인,
+          VR/AR 같은 기술이 빠르게 얽혀가면서, 사용자의 터치 한 번, 클릭 한 번이 남기는
+          환경 영향은 점점 무시할 수 없는 문제가 되어가고 있어요. <strong>그렇다면, UX 디자이너가
+          해낼 수 있는 "좋은 디자인"은 무엇일까요?</strong>
+        </p>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════ PROBLEM ═══════════ -->
+<section id="problem" class="problem">
+  <div class="container">
+    <div class="section-head reveal-on-scroll">
+      <div class="section-num">01 — The Invisible Layer</div>
+      <h2>잘 느껴지지는 않지만,<br class="br-md">화면 뒤에는 <span class="hl">늘 무언가가</span> 돌고 있어요.</h2>
+      <p class="lead">
+        사용자는 버튼 하나를 누르지만, 그 버튼은 수십 개의 서버를 깨워요.<br>
+        그리고 그 사용자의 수는 손에 꼽기 힘들 정도로 많죠.<br>
+        여러 사소한 UX 결정이 가져오는 환경적 영향에 대해 상상해볼 수 있나요?
+      </p>
+    </div>
+
+    <div class="demo-wrap reveal-on-scroll">
+      <div class="demo-tabs" role="tablist">
+        <button class="demo-tab active" data-demo="autoplay">자동재생</button>
+        <button class="demo-tab" data-demo="infinite">무한 스크롤</button>
+        <button class="demo-tab" data-demo="ai">AI에게 한 줄 답장</button>
+        <button class="demo-tab" data-demo="sync">실시간 동기화</button>
+        <button class="demo-tab" data-demo="suggest">AI 자동완성</button>
+        <button class="demo-tab" data-demo="push">실시간 알림</button>
+      </div>
+
+      <div class="demo-body">
+        <div class="demo-side left">
+          <div class="label" id="demo-label-left"><span class="bar"></span>사용자가 경험하는 것</div>
+          <div class="content" id="demo-visible">
+            하나의 영상이 끝나면 다음 영상이 자동으로 이어져 재생되는, 끊김 없고 매끄러운 시청 경험.
+          </div>
+
+          <div class="demo-reflection">
+            <div class="reflection-inner">
+              <div class="label-row">
+                <div class="ic" aria-hidden="true">!</div>
+                <div class="reflection-label">A thought to sit with</div>
+              </div>
+              <div class="question" id="demo-reflection">정말 모든 사용자가 매번 다음 영상이 자동으로 재생되길 원할까요? 그것이 언제나 좋은 경험을 만들까요?</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="demo-side right">
+          <div class="label" id="demo-label-right"><span class="bar"></span>같은 순간, 백엔드에서는:</div>
+          <div class="tech-list" id="demo-hidden">
+            <span class="line">→ <span class="accent">CDN 엣지 서버</span>에 비디오 요청</span>
+            <span class="line">→ 디코딩 · 트랜스코딩 · <span class="accent">GPU 가동</span></span>
+            <span class="line">→ 지속적인 <span class="accent">스트림 데이터</span> 전송</span>
+            <span class="line">→ 로그 · 분석 · 추천 모델 업데이트</span>
+            <span class="line total">= 매끄러운 경험의 대가, 서버는 꺼지지 못해요.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="problem-closer reveal-on-scroll">
+      <div class="pc-label">A note for designers</div>
+      <p>
+        이런 사고방식이 조금 낯설고 어렵게 느껴질 수 있어요. 사실 디자이너가 백엔드의 동작
+        하나하나를 다 이해하기는 쉽지 않죠.
+      </p>
+      <p>
+        하지만 AI가 빠르게 일상 속으로 들어온 것처럼, 우리의 디자인 결정이 가지는 무게도
+        그만큼 커지고 있어요. <strong>더 나은 디자인을 위해, 우리는 어떤 고민을 할 수 있을까요?</strong>
+      </p>
+    </div>
+
+    <!-- CTA: Backend Translator 탭으로 -->
+    <div class="problem-cta-wrap reveal-on-scroll">
+      <button type="button" class="rb-cta-mini" id="translatorTabBtn" data-target-tab="tab-translator">
+        <span class="rb-cta-mini-dot" aria-hidden="true"></span>
+        <span class="rb-cta-mini-meta">Lens</span>
+        <span class="rb-cta-mini-name">Backend Translator로 직접 살펴보기</span>
+        <span class="rb-cta-mini-arrow" aria-hidden="true">↗</span>
+      </button>
+      <p class="rb-cta-mini-hint">
+        궁금한 시나리오를 입력하면, 같은 순간 백엔드에서 어떤 일이<br class="br-md">
+        동시에 일어나는지 변환해서 보여드려요.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ TENSION ═══════════ -->
+<section id="tension" class="tension">
+  <div class="container">
+    <div class="section-head reveal-on-scroll">
+      <div class="section-num">02 — Practical Tension</div>
+      <h2>디자인의 고민이 머무는 곳은,<br class="br-md"><span class="hl-light">세 관점의 균형점</span>일지 몰라요.</h2>
+      <p class="lead">
+        UX 품질, 비즈니스 목표, 그리고 인프라가 감당하는 환경 영향.<br>
+        이 셋은 종종 서로 다른 방향을 가리킬 때도 많지만, 단 하나의 명백한 정답보다는,<br>
+        그 사이의 균형을 찾아가는 일이 앞으로 우리에게 요구되는 디자인의 영역이에요.
+      </p>
+    </div>
+
+    <div class="tension-layout">
+      <div class="tension-viz reveal-on-scroll">
+        <svg viewBox="0 0 400 400">
+          <polygon points="200,80 340,310 60,310"
+                   fill="#fafaf9" stroke="#e8e8e5" stroke-width="1.5"/>
+
+          <circle cx="200" cy="230" r="5" fill="#0a0a0a"/>
+          <circle cx="200" cy="230" r="14" fill="none" stroke="#0a0a0a" stroke-width="1" stroke-dasharray="2 3" opacity="0.35"/>
+
+          <g>
+            <circle cx="200" cy="80" r="9" fill="#2563eb"/>
+            <text x="200" y="58" text-anchor="middle" font-family="Geist, sans-serif"
+                  font-size="14" font-weight="600" fill="#0a0a0a" letter-spacing="-0.5">UX Quality</text>
+            <text x="200" y="40" text-anchor="middle" font-family="Geist Mono, monospace"
+                  font-size="9" fill="#a3a3a3" font-weight="500">USER</text>
+          </g>
+
+          <g>
+            <circle cx="340" cy="310" r="9" fill="#0a0a0a"/>
+            <text x="340" y="340" text-anchor="middle" font-family="Geist, sans-serif"
+                  font-size="14" font-weight="600" fill="#0a0a0a" letter-spacing="-0.5">Business</text>
+            <text x="340" y="358" text-anchor="middle" font-family="Geist Mono, monospace"
+                  font-size="9" fill="#a3a3a3" font-weight="500">GOALS</text>
+          </g>
+
+          <g>
+            <circle cx="60" cy="310" r="9" fill="#84cc16"/>
+            <text x="60" y="340" text-anchor="middle" font-family="Geist, sans-serif"
+                  font-size="14" font-weight="600" fill="#0a0a0a" letter-spacing="-0.5">Infra Impact</text>
+            <text x="60" y="358" text-anchor="middle" font-family="Geist Mono, monospace"
+                  font-size="9" fill="#a3a3a3" font-weight="500">NEW AXIS</text>
+          </g>
+
+          <g stroke="#a3a3a3" stroke-width="0.8" stroke-dasharray="3 4" opacity="0.5">
+            <line x1="200" y1="230" x2="200" y2="90">
+              <animate attributeName="opacity" values="0.2;0.6;0.2" dur="3s" repeatCount="indefinite"/>
+            </line>
+            <line x1="200" y1="230" x2="330" y2="305">
+              <animate attributeName="opacity" values="0.6;0.2;0.6" dur="3s" repeatCount="indefinite"/>
+            </line>
+            <line x1="200" y1="230" x2="70" y2="305">
+              <animate attributeName="opacity" values="0.4;0.75;0.4" dur="3s" repeatCount="indefinite"/>
+            </line>
+          </g>
+
+          <text x="200" y="263" text-anchor="middle" font-family="Geist, sans-serif"
+                font-size="11" fill="#737373" font-weight="500">we are here</text>
+        </svg>
+      </div>
+
+      <div class="tension-text reveal-on-scroll">
+        <h3>세 가지가 함께 움직이는 순간</h3>
+        <p>
+          고화질 스트리밍은 사용자에게 풍부한 경험을 주고 비즈니스에는 더 긴 시청 시간을 가져다줘요.
+          하지만 같은 순간에, 데이터 전송량은 몇 배로 늘어나죠. 우리가 '좋은 UX'라고 불러온 것들—
+          실시간 동기화, 풍부한 인터랙션, 넉넉한 프리페칭—은 결국 더 많은 연산과 데이터 위에서 움직여요.
+        </p>
+
+        <div class="tension-pills">
+          <div class="tension-pill">
+            <span class="swatch" style="background: #2563eb;"></span>
+            <div>
+              <div class="name">UX Quality</div>
+              <div class="desc">매끄럽게, 빠르게, 풍부하게</div>
+            </div>
+          </div>
+          <div class="tension-pill">
+            <span class="swatch" style="background: #0a0a0a;"></span>
+            <div>
+              <div class="name">Business Goals</div>
+              <div class="desc">참여 시간, 리텐션, 전환율</div>
+            </div>
+          </div>
+          <div class="tension-pill">
+            <span class="swatch" style="background: #84cc16;"></span>
+            <div>
+              <div class="name">Infrastructure Impact</div>
+              <div class="desc">연산 · 전송 · 저장에 드는 에너지</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="reframe-caption reveal-on-scroll">
+      세 관점이 부딪힐 때 느껴지는 막막함은, 각 관점이 그만큼 중요한 가치를 짚고 있다는 신호이기도 해요.<br>
+      IRD는 이 갈등을 없애려 하기보다, 균형점을 찾는 <strong>단서로 다시 바라보자고 제안해요.</strong>
+    </p>
+    <div class="reframe-box reveal-on-scroll">
+      <div>
+        <div class="tag">how we usually feel</div>
+        <div class="label">피해야 할 갈등</div>
+        <div class="desc">세 관점이 부딪힐 때 느껴지는 막막함</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="after">
+        <div class="tag">how ird invites us</div>
+        <div class="label">살펴봐야 할 마찰</div>
+        <div class="desc">균형점을 찾기 위해 들여다봐야 할 신호</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ AMBIGUITY ═══════════ -->
+<section id="ambiguity">
+  <div class="container">
+    <div class="section-head reveal-on-scroll">
+      <div class="section-num">03 — Calculative Ambiguity</div>
+      <h2>게다가 <span class="hl">정확한 계산</span>은<br class="br-md">현실적으로 불가능에 가까워요.</h2>
+      <p class="lead">
+        많은 디자이너가 환경 영향 앞에서 멈칫하는 건 관심이 없어서가 아니에요.<br>
+        내가 내린 결정이 실제로 의미 있는 변화를 만들었는지, 확신할 방법이 아직은 마땅치 않기 때문이죠.<br>
+        그리고 그건 디자이너 개인의 한계로 볼 수는 없어요.
+      </p>
+    </div>
+
+    <div class="ambi-grid reveal-on-scroll">
+      <div class="ambi-card">
+        <div class="ic">≈</div>
+        <h4>간접 영향은 추적이 어려워요</h4>
+        <p>
+          '인트로 건너뛰기'는 분명 스트리밍 에너지를 줄여요. 하지만 더 편해진 경험이 총 시청 시간을
+          늘린다면? 결국 그 효과는 0에 가까워질 수도 있죠.
+        </p>
+      </div>
+
+      <div class="ambi-card">
+        <div class="ic">⤸</div>
+        <h4>리바운드 효과가 따라와요</h4>
+        <p>
+          효율이 올라가면, 사용도 함께 늘어나요. 덜 쓰게 하려 했는데 오히려 더 쓰게 되는—
+          환경 디자인에서 가장 자주 마주치는 역설이에요.
+        </p>
+      </div>
+
+      <div class="ambi-card">
+        <div class="ic">∆</div>
+        <h4>숫자는 맥락마다 달라져요</h4>
+        <p>
+          어디까지를 시스템으로 볼지, 언제 측정할지에 따라 값이 바뀌어요.
+          '정답인 숫자'는 없고, 그저 맥락 안의 추정치만 있을 뿐이에요.
+        </p>
+      </div>
+    </div>
+
+    <div class="problem-closer reveal-on-scroll">
+      <div class="pc-label">A note to remember</div>
+      <p>
+        완벽한 측정이 <strong>불가능에 가까운 것</strong>은 디자이너의 한계가 아니라,
+        이 문제가 가진 <strong>본래의 속성</strong>이에요.
+      </p>
+      <p>
+        <strong>그렇다면, 우리의 책임을 다할 수 있는 방법은 무엇일까요?</strong>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ CONCEPT ═══════════ -->
+<section id="concept" class="concept">
+  <div class="container">
+    <div class="concept-head reveal-on-scroll">
+      <div class="eyebrow">
+        <span class="dot"></span>
+        <span>The concept</span>
+      </div>
+      <div class="concept-title">
+        Infrastructural <span class="accent-word">Reflective</span> Design
+        <span class="abbr">인프라 성찰적 디자인 (IRD)</span>
+      </div>
+      <p class="concept-def">
+        이렇게 보이지 않는 인프라의 영향을 디자인 사고의 일부로 가져오는 태도를,<br>
+        우리는 <span class="hl-light">인프라 성찰적 디자인(Infrastructural Reflective Design)</span>이라고 불러요.<br>
+        정답을 찾는 일이 아니라, 더 좋은 질문을 품고 결정해가는 일에 가까워요.
+      </p>
+    </div>
+
+    <p class="concept-intro-p reveal-on-scroll">
+      <span class="intro-slash" aria-hidden="true">—</span>
+      구체적으로 보면, 이미 익숙한 디자인 흐름 위에 <span class="hl-light">'인프라'라는 한 겹의 시야</span>를 얹는 일이에요.
+    </p>
+
+    <div class="stages-compare reveal-on-scroll">
+      <!-- 상단 행: 기존 디자인 프로세스 -->
+      <div class="row-label baseline">
+        <span class="row-tag">Standard Design Process</span>
+      </div>
+      <div class="stages baseline-row">
+        <div class="stage">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-label">Stage 01</div>
+          </div>
+          <h3>Sensing</h3>
+          <span class="ko">알아차리기</span>
+          <p>사용자와 맥락을 살피고, 풀어야 할 문제의 윤곽을 잡아요.</p>
+        </div>
+
+        <div class="stage">
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-label">Stage 02</div>
+          </div>
+          <h3>Intentional Design</h3>
+          <span class="ko">의도적 설계</span>
+          <p>UX와 비즈니스 사이의 균형을 잡으며, 의도를 가진 결정을 내려요.</p>
+        </div>
+
+        <div class="stage">
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-label">Stage 03</div>
+          </div>
+          <h3>Impact</h3>
+          <span class="ko">결과와 마주하기</span>
+          <p>사용자가 마주한 결과를 관찰하고, 그로부터 다음 결정을 위한 단서를 얻어요.</p>
+        </div>
+      </div>
+
+      <!-- 연결 표시: 같은 단계 위에 IRD 렌즈가 더해짐 -->
+      <div class="overlay-indicator" aria-hidden="true">
+        <span class="line-arrow"></span>
+        <span class="overlay-label">+ IRD가 더하는 인프라 렌즈</span>
+        <span class="line-arrow"></span>
+      </div>
+
+      <!-- 하단 행: IRD가 더하는 렌즈 -->
+      <div class="stages ird-row">
+        <div class="stage ird">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-label">Stage 01 + IRD</div>
+          </div>
+          <h3>Sensing</h3>
+          <span class="ko">+ 인프라 알아차리기</span>
+          <p>
+            지금 만들고 있는 이 기능 뒤에서, 어떤 데이터가 어디로 움직이고 있을까요?
+            연결이 존재한다는 감각을 사고의 표면에 올려두는 것에서 시작해요.
+          </p>
+        </div>
+
+        <div class="stage ird">
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-label">Stage 02 + IRD</div>
+          </div>
+          <h3>Intentional Design</h3>
+          <span class="ko">+ 인프라 영향까지 의도적으로</span>
+          <p>
+            UX, 비즈니스, 인프라 영향—세 축 사이에서 가장 적절한 균형점을 찾아가요.
+            갈등 안에서 판단하는 감각을 키워가는 연습이에요.
+          </p>
+          <div class="attr"><span class="dot"></span>Practical Tension</div>
+        </div>
+
+        <div class="stage ird">
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-label">Stage 03 + IRD</div>
+          </div>
+          <h3>Impact</h3>
+          <span class="ko">+ 모호함을 받아들이기</span>
+          <p>
+            결과는 깔끔하게 측정되지 않을 수도, 예상과 반대로 뒤집힐 수도 있어요.
+            그래도 의도를 가지고 결정했다는 사실까지 디자인의 일부로 인정해요.
+          </p>
+          <div class="attr"><span class="dot"></span>Calculative Ambiguity</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="concept-note reveal-on-scroll">
+      <span class="nobreak">같은 단계 위에 하나의 관점이 더해질 뿐이지만, 그때부터 디자인이 다루는 시야가 달라져요.</span><br class="br-md">
+      <span class="nobreak">이 과정에서 아마 여러 의사결정 과정에서의 마찰과 혼란, 불확실성을 마주할 텐데요,</span><br class="br-md">
+      <span class="nobreak">그런 혼란을 겪는다면 그건 사실 <span class="ink-strong">IRD 관점을 잘 수행하고 있다는 신호</span>이기도 해요.</span><br class="br-md">
+      <span class="nobreak">한 번에 옳은 답을 내기는 어렵고, 결정의 순간마다 <span class="hl-light">다시 질문을 되돌려보는 태도</span> 자체가 <span class="ink-strong">IRD</span>를 만들어내요.</span>
+    </p>
+
+    <!-- CTA: 다음 탭(Hints to begin with)으로 -->
+    <div class="concept-cta-wrap reveal-on-scroll">
+      <button type="button" class="rb-cta-mini" id="hintsTabBtn" data-target-tab="tab-hints">
+        <span class="rb-cta-mini-dot" aria-hidden="true"></span>
+        <span class="rb-cta-mini-meta">Guide</span>
+        <span class="rb-cta-mini-name">사고의 시작점이 될 힌트들 보러가기</span>
+        <span class="rb-cta-mini-arrow" aria-hidden="true">→</span>
+      </button>
+      <p class="rb-cta-mini-hint">
+        IRD의 관점에서 디자인 결정을 다시 들여다볼 수 있는<br class="br-md">
+        구체적인 가이드와 사례들을 모아두었어요.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ REBOUND EFFECT ═══════════ -->
+<section id="rebound" class="rebound">
+  <div class="container">
+    <div class="rebound-head reveal-on-scroll">
+      <div class="rb-eyebrow">
+        <span class="dot"></span>
+        <span>Rebound Effect</span>
+      </div>
+      <h2 class="rb-title">
+        이런 디자인 고민에서 중요한 부분이 있어요.<br>
+        <span class="hl-accent">"반등 효과"</span>라는 말, 들어보셨나요?
+      </h2>
+      <p class="rb-lead">
+        환경적 노력의 결과적 영향을 살필 때, 가장 자주, 그리고 조용히 디자이너의 노력을 무력화하는 현상이 있어요.<br>
+        바로 <strong>반등 효과(Rebound Effect)</strong>인데요. 효율을 높이려는 디자인이 오히려 사용량을 늘려서,<br>
+        결과적으로 환경 부담이 비슷하거나 더 커지는 역설을 말해요. 일종의 나비 효과라고도 볼 수 있죠.
+      </p>
+    </div>
+
+    <!-- 자동차 → 디지털: 같은 패턴이 반복되는 두 이야기 -->
+    <div class="rb-stories-intro reveal-on-scroll">
+      <span class="rb-stories-intro-label">Examples</span>
+      <span class="rb-stories-intro-text">예를 들면, 실제로 이런 흐름이 일어나요.</span>
+    </div>
+    <div class="rb-stories reveal-on-scroll">
+      <!-- Story 1: 자동차 -->
+      <div class="rb-story">
+        <div class="rb-story-header">
+          <span class="rb-story-emoji">🚗</span>
+          <span class="rb-story-title">에너지 효율이 좋아진 자동차</span>
+          <span class="rb-story-tagwrap">
+            <span class="rb-story-tagtext">예시</span>
+            <span class="rb-story-tag">1</span>
+          </span>
+        </div>
+
+        <div class="rb-flow">
+          <div class="rb-flow-step">
+            <div class="rb-flow-label">의도</div>
+            <div class="rb-flow-headline">연료를 덜 쓰게 만들고 싶었어요.</div>
+            <p class="rb-flow-body">연비를 높여서 한 번 주유로 더 멀리 갈 수 있게 했죠.</p>
+          </div>
+
+          <div class="rb-flow-arrow" aria-hidden="true">↓</div>
+
+          <div class="rb-flow-step rb-flow-turn">
+            <div class="rb-flow-label">그런데</div>
+            <div class="rb-flow-headline">사람들이 더 자주, 더 멀리 운전해요.</div>
+            <p class="rb-flow-body">한 번 가는 비용이 줄자, 운전 자체가 부담 없어졌거든요.</p>
+          </div>
+
+          <div class="rb-flow-arrow" aria-hidden="true">↓</div>
+
+          <div class="rb-flow-step rb-flow-result">
+            <div class="rb-flow-label">결과</div>
+            <div class="rb-flow-headline">총 연료 소비는 그대로거나, 더 늘어났어요.</div>
+            <p class="rb-flow-body">줄이려던 부담이 사라지지 않고 다른 모양으로 돌아온 거예요.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Story 2: 디지털 -->
+      <div class="rb-story">
+        <div class="rb-story-header">
+          <span class="rb-story-emoji">📱</span>
+          <span class="rb-story-title">더 가볍고 빠른 디지털 제품</span>
+          <span class="rb-story-tagwrap">
+            <span class="rb-story-tagtext">예시</span>
+            <span class="rb-story-tag">2</span>
+          </span>
+        </div>
+
+        <div class="rb-flow">
+          <div class="rb-flow-step">
+            <div class="rb-flow-label">의도</div>
+            <div class="rb-flow-headline">서버 부담을 줄이고 싶었어요.</div>
+            <p class="rb-flow-body">로딩을 빠르게, UX를 매끄럽게, 앱을 더 가볍게 만들었죠.</p>
+          </div>
+
+          <div class="rb-flow-arrow" aria-hidden="true">↓</div>
+
+          <div class="rb-flow-step rb-flow-turn">
+            <div class="rb-flow-label">그런데</div>
+            <div class="rb-flow-headline">사람들이 더 오래, 더 자주 사용해요.</div>
+            <p class="rb-flow-body">사용 자체가 부담 없어지자, 자연스럽게 사용 시간이 길어졌어요.</p>
+          </div>
+
+          <div class="rb-flow-arrow" aria-hidden="true">↓</div>
+
+          <div class="rb-flow-step rb-flow-result">
+            <div class="rb-flow-label">결과</div>
+            <div class="rb-flow-headline">줄이려던 부담은 다시 돌아오거나, 더 커져요.</div>
+            <p class="rb-flow-body">총 데이터 사용량이나 서버 부하는 결국 비슷하거나 늘어나죠.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3가지 반등: 세로 sticky 스크롤 카드 -->
+    <div class="rb-types reveal-on-scroll">
+      <div class="rb-types-header">
+        <span class="rb-types-label">Three patterns of rebound</span>
+        <div class="rb-types-line"></div>
+      </div>
+
+      <div class="rb-types-stack">
+        <div class="rb-type-orb">
+          <div class="rb-orb">
+            <span class="rb-orb-num">01</span>
+            <div class="rb-orb-name">
+              <span class="ko">직접 반등</span>
+              <span class="en">Direct Rebound</span>
+            </div>
+            <p>
+              같은 제품을 더 많이 쓰게 돼요. 데이터 압축으로 영상이 가벼워지자
+              사용자가 더 오래 시청해서, 결국 총 데이터<br>
+              사용량은 비슷해지죠.
+            </p>
+          </div>
+        </div>
+
+        <div class="rb-type-orb">
+          <div class="rb-orb">
+            <span class="rb-orb-num">02</span>
+            <div class="rb-orb-name">
+              <span class="ko">간접 반등</span>
+              <span class="en">Indirect Rebound</span>
+            </div>
+            <p>
+              한쪽에서 줄인 것이 다른 영역으로 옮겨가요. 빠른 결제 UX로 시간이 절약되자,
+              남은 시간에 다른 디지털 활동을 더<br>
+              하게 되는 흐름이에요.
+            </p>
+          </div>
+        </div>
+
+        <div class="rb-type-orb">
+          <div class="rb-orb">
+            <span class="rb-orb-num">03</span>
+            <div class="rb-orb-name">
+              <span class="ko">시스템 반등</span>
+              <span class="en">Systemic Rebound</span>
+            </div>
+            <p>
+              개별 행동을 넘어 시스템 자체가 바뀌어요. AI 자동완성이 보편화되면
+              글쓰기가 'AI를 거치는 일'이 되어, 인프라 의존도가 구조적으로 커져요.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Jevons 역설: 모던한 인용 (SVG 따옴표) -->
+    <aside class="rb-jevons reveal-on-scroll">
+      <svg class="rb-j-mark" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <path d="M11 9.5C7.5 11 5 14 5 18v4.5h7V15h-3.5c.5-2 2-3.5 4-4.5L11 9.5zm14 0c-3.5 1.5-6 4.5-6 8.5v4.5h7V15h-3.5c.5-2 2-3.5 4-4.5L25 9.5z" fill="currentColor"/>
+      </svg>
+      <p class="rb-j-quote">효율 개선이 절약을 보장하지 않는다.</p>
+      <p class="rb-j-cite">
+        <span class="rb-j-name">Jevons Paradox</span>
+        <span class="rb-j-sep">·</span>
+        <span class="rb-j-meta">1865년, 증기기관에서 발견된 통찰. 160년이 지난 지금도 디지털 환경에서 똑같이 작동해요.</span>
+      </p>
+    </aside>
+
+    <!-- CTA: 작고 컴팩트한 인라인 카드 -->
+    <div class="rb-cta-wrap reveal-on-scroll">
+      <button type="button" class="rb-cta-mini" id="reboundStudioBtn" data-target-tab="tab-studio">
+        <span class="rb-cta-mini-dot" aria-hidden="true"></span>
+        <span class="rb-cta-mini-meta">Canvas</span>
+        <span class="rb-cta-mini-name">Rebound Design Studio 사용해보기</span>
+        <span class="rb-cta-mini-arrow" aria-hidden="true">↗</span>
+      </button>
+      <p class="rb-cta-mini-hint">
+        내 디자인 아이디어가 어떤 반등을 만들 수 있을지,<br class="br-md">
+        Rebound Design Studio에서 시나리오를 상상해볼 수 있어요.
+      </p>
+    </div>
+  </div>
+</section>
+
+</div><!-- /tab-concept -->
+
+<!-- ═══════════ TAB 2: Hints to begin with ═══════════ -->
+<div id="tab-hints" class="tab-panel" role="tabpanel">
+
+<!-- ═══════════ HINTS — 통합 도구 영역 ═══════════ -->
+<section id="hints-tool" class="hints-tool">
+  <div class="container">
+    <div class="tab-frame">
+      <!-- 도구 toolbar (Studio 패턴 통일) -->
+      <div class="tool-toolbar">
+        <div class="tool-toolbar-meta">
+          <span class="tool-toolbar-dot" aria-hidden="true"></span>
+          <span class="tool-toolbar-label">Hints to begin with</span>
+          <span class="tool-toolbar-tag">Guide</span>
+        </div>
+        <div class="tool-toolbar-info">
+          IRD Toolkit · Conceptual reference
+        </div>
+      </div>
+
+      <div class="tool-body">
+      <!-- 플로팅 sub-tab -->
+      <div class="hints-subtabs">
+        <div class="hints-subtabs-inner" role="tablist" aria-label="Hints sub navigation">
+          <button type="button" class="hints-subtab active" data-subtab="hints-practice" role="tab" aria-selected="true">
+            <span class="hints-subtab-dot" aria-hidden="true"></span>
+            <span>사고의 시작점</span>
+          </button>
+          <button type="button" class="hints-subtab" data-subtab="hints-think" role="tab" aria-selected="false">
+            <span class="hints-subtab-dot" aria-hidden="true"></span>
+            <span>디자인 사례</span>
+            <span class="hints-subtab-soon">Soon</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 패널 1: 사고의 시작 -->
+      <div class="hints-subpanel active" id="hints-practice" data-anchor="practice" role="tabpanel">
+    <div class="section-head reveal-on-scroll">
+      <div class="section-num">01 — Five lenses to begin with</div>
+      <h2>처음 고민을 시작한다면,<br class="br-md"><span class="ink-strong">이런 방향으로 생각을 시작해보세요.</span></h2>
+      <p class="lead lead-wide">
+        지속가능한 디자인과 관련한 연구들에서 자주 다뤄지는 사고의 출발점들이에요.<br>
+        이 중에서, 한두 가지의 관점을 현재 작업 중인 프로덕트 디자인에 대입해 생각해보세요. 이전과는 사고의 결이 달라질 거예요.
+      </p>
+    </div>
+
+    <div class="practice-grid reveal-on-scroll">
+      <div class="p-card">
+        <div class="ic-wrap">
+          <div class="ic">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8"/>
+            </svg>
+          </div>
+          <span class="tag">DATA DEMAND</span>
+        </div>
+        <h4>데이터 수요를 먼저 들여다본다</h4>
+        <p>
+          내 디자인이 언제 데이터를 만드나요? 사용자 상호작용, 백그라운드 요청, 자동 업데이트—
+          세 가지 흐름 각각에 "꼭 필요한가?"를 물어봅니다.
+        </p>
+        <div class="q"><span class="prefix">Q.</span>지금 당장 지워도 되는 요청이 하나라도 있을까?</div>
+      </div>
+
+      <div class="p-card">
+        <div class="ic-wrap">
+          <div class="ic">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="9"/><path d="M8 12h8"/>
+            </svg>
+          </div>
+          <span class="tag">DIGITAL WASTE</span>
+        </div>
+        <h4>한 번도 쓰이지 않는 데이터를 찾는다</h4>
+        <p>
+          IBM 추정에 따르면 IoT 센서 데이터의 약 90%는 한 번도 사용되지 않는다고 해요.
+          기능이 아니라 수명 차원에서 설계 여지를 봅니다.
+        </p>
+        <div class="q"><span class="prefix">Q.</span>수집만 하고 쓰이지 않는 데이터는 없는가?</div>
+      </div>
+
+      <div class="p-card">
+        <div class="ic-wrap">
+          <div class="ic">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="4"/>
+              <path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/>
+            </svg>
+          </div>
+          <span class="tag">AWARENESS</span>
+        </div>
+        <h4>사용자에게 인식과 통제권을 돌려준다</h4>
+        <p>
+          Eco-feedback, 제어 옵션, 미묘한 시각 신호—UX의 익숙한 도구들을 '환경'이라는
+          맥락으로 번역합니다.
+        </p>
+        <div class="q"><span class="prefix">Q.</span>사용자가 자기 소비를 눈으로 확인할 수 있나?</div>
+      </div>
+
+      <div class="p-card">
+        <div class="ic-wrap">
+          <div class="ic">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M13 2L3 14h7l-1 8 10-12h-7z"/>
+            </svg>
+          </div>
+          <span class="tag">DARK PATTERN</span>
+        </div>
+        <h4>'환경 버전 다크패턴'을 의심한다</h4>
+        <p>
+          원치 않는 데이터 사용을 기본값이 강제하고 있지는 않나요? '덜 쓰는 선택'이
+          몇 번의 클릭 뒤에 숨어 있지는 않나요?
+        </p>
+        <div class="q"><span class="prefix">Q.</span>우리 제품의 기본값은 누구를 위한 기본값인가?</div>
+      </div>
+
+      <div class="p-card wide">
+        <div class="ic-wrap">
+          <div class="ic">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M7 17l10-10M7 7h10v10"/>
+            </svg>
+          </div>
+          <span class="tag">COUPLING · WINS</span>
+        </div>
+        <h4>사용자 이익과 환경 이익을 같이 묶는다</h4>
+        <p>
+          배터리 수명, 속도, 데이터 요금, 디지털 웰빙—환경적으로 유리한 설계가 사용자에게도
+          이득인 '커플링 영역'을 먼저 찾습니다. 이해관계자 설득도 훨씬 수월해지고, 처음 시작하는
+          팀에게는 가장 현실적인 출발점이 되어줍니다.
+        </p>
+        <div class="q"><span class="prefix">Q.</span>환경과 UX가 같은 방향을 가리키는 지점은 어디일까?</div>
+      </div>
+    </div>
+      </div><!-- /hints-subpanel #hints-practice -->
+
+      <!-- 패널 2: 디자인 사례 (Soon) -->
+      <div class="hints-subpanel" id="hints-think" data-anchor="think" role="tabpanel" hidden>
+    <div class="section-head reveal-on-scroll">
+      <div class="section-num">02 — Coming soon</div>
+      <h2 class="h2-wide"><span class="nobreak">실제 디자인 사례들로,</span><br class="br-md"><span class="nobreak"><span class="ink-strong">사고를 자극할 수 있는 공간을 추가로 준비하고 있어요.</span></span></h2>
+      <p class="lead lead-wide">
+        구체적인 디자인 아이디어 사례들을 모아, IRD 관점에서 어떻게 다시 들여다볼 수 있는지<br>
+        함께 고민할 수 있는 자리로 채워질 예정이에요.
+      </p>
+    </div>
+
+    <div class="wip-card reveal-on-scroll">
+      <div class="wip-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M12 7v5l3 2"/>
+        </svg>
+      </div>
+      <div class="wip-text">
+        <div class="wip-tag">In progress</div>
+        <h3>이 섹션은 곧 업데이트돼요.</h3>
+        <p>
+          실무에서 마주칠 법한 디자인 사례들을 바탕으로, 디자이너가 자기 작업에
+          대입해 사고할 수 있는 도구로 정리하고 있어요. 조금만 기다려주세요.
+        </p>
+      </div>
+    </div>
+      </div><!-- /hints-subpanel #hints-think -->
+
+      </div><!-- /tool-body -->
+    </div><!-- /tab-frame -->
+  </div>
+</section><!-- /hints-tool -->
+
+<!-- ═══════════ CLOSING ═══════════ -->
+<section class="closing">
+  <div class="container-narrow">
+    <div class="closing-mark">reminder</div>
+    <h2>완벽한 답은 없을 수도 있어요.<br class="br-md"><span class="nobreak"><span class="ink-accent">질문을 시작하고 실제 사례들을 쌓아나가는 것</span>이</span><br class="br-md">우리가 나아가야 할 방향이에요.</h2>
+    <p>
+      디자인 과정에서 새로운 하나의 렌즈를 덧씌워 고민해보세요.<br>
+      처음엔 낯설겠지만, 궁극적으로 더 나은 디자인을 위한 근육이 생길 거예요.
+    </p>
+  </div>
+</section>
+
+</div><!-- /tab-hints -->
+
+<!-- ═══════════ TAB 3: Backend Translator ═══════════ -->
+<div id="tab-translator" class="tab-panel" role="tabpanel">
+  <section class="translator">
+    <div class="container">
+      <div class="tab-frame">
+      <!-- 도구 toolbar (Studio 패턴 통일) -->
+      <div class="tool-toolbar">
+        <div class="tool-toolbar-meta">
+          <span class="tool-toolbar-dot" aria-hidden="true"></span>
+          <span class="tool-toolbar-label">Backend Translator</span>
+          <span class="tool-toolbar-tag">Lens</span>
+        </div>
+        <div class="tool-toolbar-info">
+          IRD Toolkit · Speculative lens
+        </div>
+      </div>
+
+      <div class="tool-body">
+      <div class="tool-workspace">
+        <!-- 좌측 패널: 입력 + 도구 설명 -->
+        <aside class="tw-sidebar">
+          <div class="tw-section">
+            <div class="tw-section-label">
+              <span class="tw-label-num">01</span>
+              <span class="tw-label-text">Scenario</span>
+            </div>
+            <p class="tw-section-help">
+              디자인하려는 사용자 흐름을 자유롭게 적어주세요. 한 문장이어도, 여러 줄이어도 좋아요.
+            </p>
+            <div class="tw-input-row">
+              <textarea id="transInput" class="tw-input"
+                     placeholder="예: 홈 화면에서 무한 스크롤로 피드를 본다. 사용자가 어떤 흐름을 거치는지 자유롭게 적어주세요."
+                     rows="3"
+                     autocomplete="off"></textarea>
+            </div>
+            <button type="button" id="transRunBtn" class="tw-run-btn">
+              <span class="tw-run-label">변환하기</span>
+              <span class="tw-run-arrow" aria-hidden="true">→</span>
+            </button>
+          </div>
+
+          <div class="tw-divider"></div>
+
+          <div class="tw-section">
+            <div class="tw-section-label">
+              <span class="tw-label-text-alt">About this tool</span>
+            </div>
+            <p class="tw-about">
+              디자인하려는 시나리오를 입력하면, 사용자가 보는 화면 옆에서 어떤 인프라의 흐름이
+              동시에 일어날 수 있는지 함께 상상해볼 수 있어요. 정답을 알려주는 도구가 아니라,
+              내 디자인 결정이 만들 결과를 사변적으로 떠올려보는 사고 보조 도구예요.
+            </p>
+            <div class="tw-disclaimer" id="transDisclaimer" hidden>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9"/>
+                <path d="M12 8v4M12 16h.01"/>
+              </svg>
+              <span>AI가 만든 추정이에요. 정답이 아니라 사고의 출발점으로 활용해보세요.</span>
+            </div>
+          </div>
+        </aside>
+
+        <!-- 우측 메인: 결과 영역 -->
+        <main class="tw-main" id="transResult" data-state="idle">
+          <div class="tw-main-head">
+            <div class="tw-main-label-row">
+              <div class="tw-section-label tw-main-label">
+                <span class="tw-label-num">02</span>
+                <span class="tw-label-text">Translation</span>
+              </div>
+              <div class="tw-spec-badge" title="이 도구의 모든 응답은 추정이에요. 정답이 아닌 사고의 출발점으로 활용해주세요.">
+                <span class="tw-spec-dot" aria-hidden="true"></span>
+                <span>상상 추정 · Speculative</span>
+              </div>
+            </div>
+            <!-- 변환 후 사용자 시나리오 echo -->
+            <div class="tw-echo" id="transEcho" hidden>
+              <span class="tw-echo-label">Your scenario</span>
+              <p class="tw-echo-text" id="transEchoText"></p>
+            </div>
+          </div>
+
+          <div class="tw-panels">
+            <!-- Frontend 패널 -->
+            <div class="tw-panel">
+              <div class="tw-panel-head">
+                <span class="tw-panel-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="14" rx="2"/>
+                    <path d="M2 20h20"/>
+                  </svg>
+                </span>
+                <div class="tw-panel-meta">
+                  <div class="tw-panel-tag">UX · 사용자가 보는 것</div>
+                </div>
+              </div>
+              <div class="tw-panel-body">
+                <div class="tw-panel-title" id="transFrontTitle">시나리오를 변환해보세요</div>
+                <div class="tw-panel-content" id="transFrontBody">
+                  <div class="tw-empty">
+                    <div class="tw-empty-mark"></div>
+                    <p>왼쪽에 시나리오를 입력하면, 사용자가 보는 화면이 어떻게 변환되는지 보여줘요.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Backend 패널 -->
+            <div class="tw-panel tw-panel-back">
+              <div class="tw-panel-head">
+                <span class="tw-panel-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="4" y="3" width="16" height="6" rx="1"/>
+                    <rect x="4" y="11" width="16" height="6" rx="1"/>
+                    <path d="M8 6h.01M8 14h.01M12 6h4M12 14h4"/>
+                  </svg>
+                </span>
+                <div class="tw-panel-meta">
+                  <div class="tw-panel-tag">Infra · 동시에 일어나는 일</div>
+                </div>
+              </div>
+              <div class="tw-panel-body">
+                <div class="tw-panel-title" id="transBackTitle">백엔드의 움직임</div>
+                <div class="tw-panel-content tw-panel-back-body" id="transBackBody">
+                  <div class="tw-empty">
+                    <div class="tw-empty-mark"></div>
+                    <p>같은 순간 인프라에서 어떤 일이 동시에 일어나는지 보여드릴게요.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 인사이트 영역 -->
+          <div class="tw-insight" id="transInsight" hidden>
+            <div class="tw-insight-head">
+              <span class="tw-insight-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                </svg>
+              </span>
+              <span class="tw-insight-label">A thought to sit with</span>
+            </div>
+            <p id="transInsightText"></p>
+          </div>
+
+          <!-- 후속 시나리오 chips ("만약 ~라면?") -->
+          <div class="tw-scenarios" id="transScenarios" hidden>
+            <div class="tw-scenarios-label">
+              <span class="tw-scenarios-label-text">사고를 한걸음 더 확장해본다면</span>
+              <span class="tw-scenarios-help">아래 시나리오 중 하나를 골라 다시 변환해볼 수 있어요</span>
+            </div>
+            <div class="tw-scenarios-list" id="transScenariosList"></div>
+          </div>
+        </main>
+      </div>
+      </div><!-- /tool-body -->
+      </div><!-- /tab-frame -->
+    </div>
+  </section>
+</div><!-- /tab-translator -->
+
+<!-- ═══════════ TAB 4: Rebound Design Studio ═══════════ -->
+<div id="tab-studio" class="tab-panel tab-panel-fullscreen" role="tabpanel">
+  <div class="studio-fullscreen">
+    <div class="tool-toolbar">
+      <div class="tool-toolbar-meta">
+        <span class="tool-toolbar-dot" aria-hidden="true"></span>
+        <span class="tool-toolbar-label">Rebound Design Studio</span>
+        <span class="tool-toolbar-tag">Canvas</span>
+      </div>
+      <a href="rebound-design-studio.html" target="_blank" rel="noopener" class="studio-fs-link" title="새 창에서 열기">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+          <polyline points="15 3 21 3 21 9"/>
+          <line x1="10" y1="14" x2="21" y2="3"/>
+        </svg>
+        <span>새 창에서 열기</span>
+      </a>
+    </div>
+    <iframe
+      src="rebound-design-studio.html"
+      title="Rebound Design Studio"
+      loading="lazy"
+      allow="clipboard-read; clipboard-write"
+      class="studio-fs-iframe"
+      id="studioIframe"
+    ></iframe>
+    <div class="studio-fs-fallback" id="studioIframeFallback" hidden>
+      <div class="studio-fb-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M12 8v4M12 16h.01"/>
+        </svg>
+      </div>
+      <h3>이 환경에서는 도구가 표시되지 않을 수 있어요.</h3>
+      <p>
+        오른쪽 위 <strong>새 창에서 열기</strong>로 별도 창에서 사용해보세요.
+      </p>
+    </div>
+  </div>
+</div><!-- /tab-studio -->
+
+<footer>
+  <div class="inner">
+    <span>IRD Toolkit</span>
+    <span class="sep">·</span>
+    <span>A thought framework for UX designers</span>
+    <span class="sep">·</span>
+    <span>Edition 2026</span>
+  </div>
+  <div class="inner footer-credit">
+    <span>© 2026 Minha Lee. All rights reserved.</span>
+  </div>
+</footer>
+
+<script>
+  // ─── Login button placeholder (Supabase 연동은 추후) ───
+  const loginBtn = document.getElementById('loginBtn');
+  if (loginBtn) {
+    loginBtn.addEventListener('click', () => {
+      const original = loginBtn.textContent;
+      loginBtn.textContent = '곧 만나요 ✨';
+      loginBtn.disabled = true;
+      setTimeout(() => {
+        loginBtn.textContent = original;
+        loginBtn.disabled = false;
+      }, 1600);
+    });
+  }
+
+  // ─── Home 진입 버튼 4개 → 각 탭으로 이동 ───
+  document.querySelectorAll('.home-explore-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetTab = btn.dataset.targetTab;
+      if (targetTab) activateTab(targetTab);
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  // 탭 시스템: 상위 3개 탭 + 첫 탭 내부 LNB
+  // ═══════════════════════════════════════════════════════════
+  const tabButtons = document.querySelectorAll('.nav-tab');
+  const tabPanels = document.querySelectorAll('.tab-panel');
+  const navSublinks = document.getElementById('navSublinks');
+  const navBrand = document.querySelector('.nav-brand');
+
+  // nav 높이를 측정해 CSS 변수에 set (studio 풀스크린 계산에 사용)
+  const navEl = document.getElementById('nav');
+  function setNavHeightVar() {
+    if (!navEl) return;
+    const h = navEl.offsetHeight;
+    document.documentElement.style.setProperty('--nav-h', h + 'px');
+  }
+  setNavHeightVar();
+  window.addEventListener('resize', setNavHeightVar);
+  // sublinks 보임/숨김 상태가 바뀌면 nav 높이가 변하므로 약간의 delay 후 재측정
+  const reMeasureNav = () => setTimeout(setNavHeightVar, 320);
+
+  function activateTab(tabId, opts = {}) {
+    const { scrollToSection = null, smoothScroll = false } = opts;
+
+    // 탭 버튼 active 토글
+    tabButtons.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === tabId);
+    });
+
+    // 현재 active 패널 찾기 (전환 전)
+    const previousPanel = document.querySelector('.tab-panel.active');
+    const nextPanel = document.getElementById(tabId);
+
+    // home ↔ tab-concept 전환은 같은 hero 카피를 공유하니 crossfade
+    const overlappingPair = (
+      (previousPanel?.id === 'tab-home' && tabId === 'tab-concept') ||
+      (previousPanel?.id === 'tab-concept' && tabId === 'tab-home')
+    );
+
+    if (overlappingPair && previousPanel && nextPanel && previousPanel !== nextPanel) {
+      // ─── home ↔ tab-concept crossfade ───
+      // leaving 패널을 원래 위치(offsetTop)에 absolute로 고정해서 텔레포트 방지.
+      // 부모 높이도 잠깐 고정해서 leaving 패널이 빠질 때 페이지가 줄어드는 점프 방지.
+      const parent = previousPanel.parentNode;
+      const currentHeight = previousPanel.offsetHeight;
+      const currentTop = previousPanel.offsetTop;
+      parent.style.minHeight = currentHeight + 'px';
+
+      // 이전 패널을 fading-out 상태로 (원래 자리에 absolute)
+      previousPanel.style.top = currentTop + 'px';
+      previousPanel.classList.remove('active');
+      previousPanel.classList.add('is-leaving');
+      // 다음 패널을 active로
+      nextPanel.classList.add('active');
+
+      // home → tab-concept 진입 시 추가 콘텐츠 슬라이드 업
+      if (previousPanel.id === 'tab-home' && tabId === 'tab-concept') {
+        nextPanel.classList.add('is-entering-from-home');
+        // 애니메이션 완료 후 클래스 제거 (가장 늦은 delay 0.5s + duration 0.6s ≈ 1.2s)
+        setTimeout(() => {
+          nextPanel.classList.remove('is-entering-from-home');
+        }, 1300);
+      }
+
+      // crossfade 동안 scrollTo 스킵 (둘 다 페이지 최상단 시작이라 불필요)
+      opts._skipScroll = true;
+
+      // 이전 패널 fade-out 완료 후 정리 + 부모 높이 해제
+      setTimeout(() => {
+        previousPanel.classList.remove('is-leaving');
+        previousPanel.style.top = '';
+        parent.style.minHeight = '';
+      }, 350);
+    } else {
+      // 일반 탭 전환 — 즉시 토글
+      tabPanels.forEach(panel => {
+        panel.classList.remove('is-leaving');
+        panel.classList.toggle('active', panel.id === tabId);
+      });
+    }
+
+    // 도구 탭 활성 여부 (Hints, Translator) - body 스크롤 잠금 + footer 숨김
+    const isToolTab = (tabId === 'tab-hints' || tabId === 'tab-translator');
+    document.body.classList.toggle('tool-active', isToolTab);
+
+    // Studio 탭일 때만 풀스크린 모드 (body 스크롤 잠금 + footer 숨김)
+    document.body.classList.toggle('studio-active', tabId === 'tab-studio');
+
+    // Home 탭일 때 body 스크롤 잠금 (랜딩 화면은 100vh 안에서만 보임)
+    document.body.classList.toggle('home-active', tabId === 'tab-home');
+
+    // LNB: 해당 탭에 매칭되는 sublinks-inner만 표시
+    const sublinkGroups = document.querySelectorAll('.nav-sublinks-inner');
+    let hasSublinkGroup = false;
+    sublinkGroups.forEach(group => {
+      const matches = group.dataset.forTab === tabId;
+      group.style.display = matches ? '' : 'none';
+      if (matches) hasSublinkGroup = true;
+    });
+    if (navSublinks) {
+      navSublinks.classList.toggle('visible', hasSublinkGroup);
+    }
+
+    // 스크롤 위치 처리
+    if (scrollToSection) {
+      requestAnimationFrame(() => {
+        const target = document.getElementById(scrollToSection);
+        if (target) {
+          target.scrollIntoView({ behavior: smoothScroll ? 'smooth' : 'auto', block: 'start' });
+        }
+      });
+    } else if (tabId === 'tab-home') {
+      // home 진입 시 항상 scroll 0으로 (다른 탭에서 스크롤된 상태로 진입해도 위에서 시작)
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    } else if (!opts._skipScroll) {
+      window.scrollTo({ top: 0, behavior: smoothScroll ? 'smooth' : 'auto' });
+    }
+
+    // 탭 전환 시 sublink 활성 상태 갱신 (다음 frame에서)
+    requestAnimationFrame(() => {
+      if (typeof updateActiveSublink === 'function') updateActiveSublink();
+    });
+
+    // sublinks 표시/숨김으로 nav 높이가 바뀔 수 있으니 재측정
+    reMeasureNav();
+
+    // URL hash 동기화 (sandboxed iframe에서는 실패할 수 있으므로 try-catch)
+    try {
+      if (history.replaceState && location.protocol !== 'about:') {
+        history.replaceState(null, '', '#' + tabId);
+      }
+    } catch (e) {
+      // sandboxed/cross-origin 환경에서는 무시
+    }
+  }
+
+  // 탭 버튼 클릭
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      activateTab(btn.dataset.tab);
+    });
+  });
+
+  // 브랜드 로고 클릭 → tab-home (랜딩) 처음으로
+  if (navBrand) {
+    navBrand.addEventListener('click', (e) => {
+      e.preventDefault();
+      activateTab('tab-home');
+    });
+  }
+
+  // Studio placeholder의 "돌아가기" 버튼
+  document.querySelectorAll('[data-tab]').forEach(el => {
+    if (el.classList.contains('nav-tab') || el.classList.contains('nav-brand')) return;
+    el.addEventListener('click', (e) => {
+      const targetTab = el.dataset.tab;
+      if (!targetTab) return;
+      e.preventDefault();
+      activateTab(targetTab);
+    });
+  });
+
+  // 페이지 로드 시 hash로 탭 결정 (없으면 tab-home)
+  (function initTabFromHash() {
+    let hash = '';
+    try {
+      hash = (location.hash || '').replace('#', '');
+    } catch (e) { /* sandboxed iframe */ }
+
+    const validTabs = ['tab-home', 'tab-concept', 'tab-hints', 'tab-translator', 'tab-studio'];
+    if (validTabs.includes(hash)) {
+      activateTab(hash);
+    } else if (hash && document.getElementById(hash)) {
+      const sectionInTab1 = ['problem', 'tension', 'ambiguity', 'concept', 'rebound'];
+      const sectionInTab2 = ['practice', 'think'];
+      if (sectionInTab1.includes(hash)) {
+        activateTab('tab-concept', { scrollToSection: hash });
+      } else if (sectionInTab2.includes(hash)) {
+        activateTab('tab-hints', { scrollToSection: hash });
+      }
+    } else {
+      // 기본: tab-home (랜딩) 활성
+      activateTab('tab-home');
+      window.scrollTo({ top: 0 });
+    }
+  })();
+
+  // ─── Problem 끝 CTA: Backend Translator 탭으로 이동 ───
+  const translatorTabBtn = document.getElementById('translatorTabBtn');
+  if (translatorTabBtn) {
+    translatorTabBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      activateTab('tab-translator', { smoothScroll: false });
+    });
+  }
+
+  // ─── Concept 끝 CTA: Hints 탭으로 이동 ───
+  const hintsTabBtn = document.getElementById('hintsTabBtn');
+  if (hintsTabBtn) {
+    hintsTabBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      activateTab('tab-hints', { smoothScroll: false });
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // Hints 탭 내부 sub-tab 전환 (사고의 시작 / 디자인 사례)
+  // ═══════════════════════════════════════════════════════════
+  const hintsSubtabs = document.querySelectorAll('.hints-subtab');
+  const hintsSubpanels = document.querySelectorAll('.hints-subpanel');
+
+  function activateHintsSubtab(subtabId) {
+    hintsSubtabs.forEach(btn => {
+      const isActive = btn.dataset.subtab === subtabId;
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+    hintsSubpanels.forEach(panel => {
+      panel.hidden = panel.id !== subtabId;
+    });
+  }
+
+  hintsSubtabs.forEach(btn => {
+    btn.addEventListener('click', () => {
+      activateHintsSubtab(btn.dataset.subtab);
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  // Backend Translator: 시나리오 입력 → AI 기반 맥락적 변환
+  // ═══════════════════════════════════════════════════════════
+  const transInput = document.getElementById('transInput');
+  const transRunBtn = document.getElementById('transRunBtn');
+  const transResult = document.getElementById('transResult');
+  const transFrontTitle = document.getElementById('transFrontTitle');
+  const transFrontBody = document.getElementById('transFrontBody');
+  const transBackTitle = document.getElementById('transBackTitle');
+  const transBackBody = document.getElementById('transBackBody');
+  const transInsight = document.getElementById('transInsight');
+  const transInsightText = document.getElementById('transInsightText');
+  const transDisclaimer = document.getElementById('transDisclaimer');
+  const transEcho = document.getElementById('transEcho');
+  const transEchoText = document.getElementById('transEchoText');
+  const transScenarios = document.getElementById('transScenarios');
+  const transScenariosList = document.getElementById('transScenariosList');
+
+  // 사용자 입력 → AI에게 보낼 프롬프트 생성
+  function buildTranslatorPrompt(userInput) {
+    return `당신은 디자이너에게 IRD(Infrastructural Reflective Design)를 가르치는 어시스턴트입니다.
+사용자가 디자인하려는 시나리오: "${userInput}"
+
+이 시나리오에 대해 아래 5가지 항목을 한국어로 작성해주세요.
+
+[도구의 정체성 — 가장 중요]
+이 도구는 "정답을 주는 도구"가 아니라, 디자이너가 보이지 않는 환경적 결과를 **상상하게 만드는 사고 보조 도구**입니다.
+- 단정적 수치나 확정적 주장은 절대 쓰지 마세요. 모든 진술은 추정 또는 사변(speculation)이에요.
+- 단정 평서문보다는 **사변적·추정적 어조** ("~일 수도 있어요", "~하는 셈이죠", "~인 것 같아요", "~일까요?")를 더 많이 섞어주세요.
+- 디자이너가 자기 작업에 대입해 스스로 판단할 여지를 남겨두세요.
+
+[가장 중요한 원칙: 양가성을 보여주기]
+IRD는 디자인 결정의 환경적 영향을 단순히 "나쁨"으로 단정하지 않습니다.
+- 어떤 백엔드 동작은 환경적으로 부담을 주지만, 동시에 사용자에게 가치를 만들어요.
+- 어떤 효율 개선은 절약을 만드는 듯 보이지만, 동시에 사용량을 늘리는 반등을 부를 수 있어요.
+- 환경적으로 긍정적인 측면과 부정적인 측면을 함께 짚어주세요. 어느 한쪽으로만 단정하지 마세요.
+
+[톤 가이드]
+- 모든 텍스트는 부드럽고 친근한 "~요 / ~죠 / ~이에요" 어미를 사용합니다.
+- 단정적 평서문보다 **추정·사변형 표현**을 권장: "~일 수도 있어요", "~하는 셈이에요", "~할 수 있어요", "~인 것 같죠", "~일까요?"
+- 디자이너에게 직접 다정하게 말 거는 듯한 자연스러운 한국어로.
+- 딱딱한 기술 보고서 톤이나 명사 종결("~함", "~됨")은 피해주세요.
+- 환경 도덕적 압박이나 일방적 비판 톤은 피해주세요.
+- 정확한 단위(kWh, gCO2 등)는 절대 쓰지 마세요. 굳이 양을 표현해야 할 때는 "꽤", "조금씩", "쌓이게", "은근히" 같은 정성적 표현으로.
+
+[작성할 내용]
+
+1. **frontTitle**: 사용자가 이 시나리오에서 느끼는 경험을 따뜻하게 묘사하는 짧은 한 줄. 명사로 끊지 말고 자연스러운 표현으로.
+   - 좋은 예: "끊김 없이 흘러가는 시청 경험이에요", "타이핑하는 그 순간 안전하게 저장돼요"
+   - 나쁜 예: "자동재생 영상 시청", "실시간 자동저장 기능"
+   (15~25자)
+
+2. **frontDesc**: 사용자 관점에서 이 시나리오의 구체적인 UX 강점/매력/가치. 왜 사용자가 이 경험을 좋게 느끼는지 자연스럽게 풀어주세요. 단정형보다 사변적 결("~인 것 같아요", "~인 셈이죠", "~할 수 있어요")을 일부 섞어주세요. (2-3문장, ~요 어미)
+
+3. **backTitle**: 같은 순간 백엔드/인프라에서 일어나는 일을 직관적으로 보여주는 한 줄. 마찬가지로 명사 종결 X, 자연스러운 한국어 문장으로. **추정/사변적 어조**를 자연스럽게 살려주세요.
+   - 좋은 예: "서버는 그동안 쉬지 않고 깨어 있는 셈이에요", "한 줄을 고칠 때마다 사본이 어딘가에 쌓이는 것 같죠"
+   - 나쁜 예: "지속적인 서버 가동", "데이터 사본 누적"
+   (15~25자)
+
+4. **backLines**: 같은 순간 백엔드에서 일어나는 일을 4개의 짧은 문장으로. **부담만 강조하지 말고, 환경적/기술적으로 긍정적인 측면과 부정적인 측면을 균형 있게 섞어주세요.** 그리고 단정형 사실 기술이 아니라, **부드러운 추정형 어조**로 ("~게 돼요", "~하는 셈이죠", "~할 수도 있어요", "~인 것 같아요").
+
+   - 긍정적 측면 예시: "압축 알고리즘 덕에 데이터 전송량이 줄어드는 셈이에요", "캐싱이 잘 작동해서 같은 요청은 다시 처리하지 않아도 되죠", "유휴 시 서버 자원이 자동으로 줄어들 수 있어요"
+   - 부정적 측면 예시: "GPU 클러스터가 매번 새로 깨어나서 추론을 돌리게 돼요", "버전 히스토리가 디스크에 차곡차곡 쌓여가는 셈이죠", "여러 디바이스에 동기화 신호가 계속 전파될 수 있어요"
+
+   가능하면 4개 중 1-2개는 효율/절약 측면, 2-3개는 자원 소모 측면을 다뤄서 양면을 함께 보여주세요. 모두 ~요/~죠 어미로 끝나야 해요.
+
+5. **insight**: 디자이너가 잠시 멈춰 곱씹어볼 만한 **양가적 열린 질문**으로. "A thought to sit with"라는 라벨 아래 들어갈 한 단락이에요.
+   - 환경적 긍정성과 부정성을 함께 비추는 reflection.
+   - 효율 개선이 가져오는 좋은 면과, 동시에 발생할 수 있는 반등 효과(rebound effect)나 의도치 않은 결과를 같이 짚어주세요.
+   - 단순 비난/우려가 아니라, 디자이너가 양쪽을 동시에 사고하도록 유도하는 부드러운 질문.
+   - 좋은 예: "더 가벼워진 영상 덕에 같은 시청 시간에 데이터는 줄어드는 셈이에요. 그런데 그 가벼움이 결국 사용자가 더 오래, 더 자주 시청하게 만든다면, 우리가 줄인 것은 정말 줄어든 걸까요?"
+   - 좋은 예: "자동저장은 사용자가 잃을 뻔한 시간을 지켜주죠. 동시에 매 키 입력마다 작은 사본을 어딘가에 남기는데, 이 둘 사이의 균형은 어디쯤일까요?"
+   - 한 단락(2-3문장), 긍정/부정 두 시선이 자연스럽게 함께 녹아 있어야 해요.
+   - 마지막은 가능하면 열린 질문 형식("~일까요?", "~는 어디일까요?")으로.
+
+6. **scenarios**: 디자이너가 사고를 한 걸음 더 확장해볼 수 있도록, 이 시나리오의 변형 가능성을 묻는 **"만약 ~라면?" 형식의 질문 chip 2-3개**.
+   - 각 chip은 짧은 한 줄(15-30자), 클릭하면 그 질문으로 다시 변환을 시도할 수 있는 후속 시나리오.
+   - 단정적 명령 X. 반드시 질문형 ("만약 ~라면?", "~한다면 어떻게 달라질까?").
+   - 원래 시나리오에서 환경적 영향을 줄이거나 늘릴 수 있는 디자인 변형, 또는 사용자 행동의 변화 등을 다양하게 제시.
+   - 좋은 예 (자동재생 시나리오일 때): ["만약 자동재생을 끄면 어떻게 달라질까?", "만약 영상 화질을 사용자가 직접 선택한다면?", "만약 백그라운드 재생이 기본값이라면?"]
+   - 좋은 예 (실시간 저장 시나리오일 때): ["만약 매 키 입력 대신 30초마다 저장한다면?", "만약 저장 히스토리가 7일 후 자동 정리된다면?"]
+
+JSON 형식으로만 응답해주세요. 마크다운, 설명, 코드 블록 없이 순수 JSON만:
+
+{
+  "frontTitle": "...",
+  "frontDesc": "...",
+  "backTitle": "...",
+  "backLines": ["...", "...", "...", "..."],
+  "insight": "...",
+  "scenarios": ["만약 ~라면?", "만약 ~라면?", "만약 ~라면?"]
+}`;
+  }
+
+  // JSON 응답 파싱 (마크다운 블록 제거 + 안전 파싱)
+  function parseAIResponse(rawResponse) {
+    if (!rawResponse) throw new Error('empty response');
+    // ```json ... ``` 또는 ``` ... ``` 블록 제거
+    let cleaned = String(rawResponse).trim();
+    cleaned = cleaned.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim();
+    // JSON이 시작되는 곳부터 찾기
+    const start = cleaned.indexOf('{');
+    const end = cleaned.lastIndexOf('}');
+    if (start === -1 || end === -1) throw new Error('no JSON found');
+    const jsonStr = cleaned.slice(start, end + 1);
+    return JSON.parse(jsonStr);
+  }
+
+  // 결과 영역 비우기 / 로딩 표시
+  function setLoadingState() {
+    if (!transResult) return;
+    transResult.dataset.state = 'loading';
+    if (transRunBtn) {
+      transRunBtn.disabled = true;
+      transRunBtn.classList.add('is-loading');
+    }
+    // 사용자 시나리오를 echo 영역에 표시
+    if (transEcho && transEchoText && transInput) {
+      transEchoText.textContent = transInput.value.trim();
+      transEcho.hidden = false;
+    }
+    if (transFrontTitle) transFrontTitle.textContent = '시나리오를 변환하고 있어요';
+    if (transFrontBody) {
+      transFrontBody.innerHTML = '<p class="tw-loading-pulse">사용자 경험을 풀어보는 중...</p>';
+    }
+    if (transBackTitle) transBackTitle.textContent = '백엔드의 움직임을 그리고 있어요';
+    if (transBackBody) {
+      transBackBody.innerHTML = '<p class="tw-loading-pulse">동시에 일어나는 일을 추적하는 중...</p>';
+    }
+    if (transInsight) transInsight.hidden = true;
+    if (transScenarios) transScenarios.hidden = true;
+    if (transDisclaimer) transDisclaimer.hidden = true;
+  }
+
+  // 결과 렌더링
+  function renderResult(data) {
+    if (!data) return;
+
+    if (transFrontTitle) transFrontTitle.textContent = data.frontTitle || '사용자가 보는 화면';
+    if (transFrontBody) {
+      transFrontBody.innerHTML = '';
+      const p = document.createElement('p');
+      p.textContent = data.frontDesc || '';
+      transFrontBody.appendChild(p);
+    }
+    if (transBackTitle) transBackTitle.textContent = data.backTitle || '백엔드의 움직임';
+    if (transBackBody) {
+      transBackBody.innerHTML = '';
+      const lines = Array.isArray(data.backLines) ? data.backLines : [];
+      if (lines.length) {
+        const ul = document.createElement('ul');
+        lines.forEach(line => {
+          const li = document.createElement('li');
+          li.textContent = String(line);
+          ul.appendChild(li);
+        });
+        transBackBody.appendChild(ul);
+      }
+    }
+    if (transInsight && transInsightText) {
+      transInsightText.textContent = data.insight || '';
+      transInsight.hidden = !data.insight;
+    }
+    // 시나리오 chips ("만약 ~라면?")
+    if (transScenarios && transScenariosList) {
+      transScenariosList.innerHTML = '';
+      const scenarios = Array.isArray(data.scenarios) ? data.scenarios.filter(s => s && s.trim()) : [];
+      if (scenarios.length) {
+        scenarios.forEach(scenario => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'tw-scenario-chip';
+          const text = document.createElement('span');
+          text.textContent = String(scenario);
+          const arrow = document.createElement('span');
+          arrow.className = 'tw-scenario-chip-arrow';
+          arrow.textContent = '→';
+          arrow.setAttribute('aria-hidden', 'true');
+          btn.appendChild(text);
+          btn.appendChild(arrow);
+          btn.addEventListener('click', () => {
+            // chip 텍스트를 입력창에 넣고 변환 트리거
+            if (transInput) {
+              transInput.value = String(scenario);
+              transInput.focus();
+            }
+            translateScenario(String(scenario));
+            // 결과 영역 상단으로 스크롤
+            if (transResult) {
+              transResult.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          });
+          transScenariosList.appendChild(btn);
+        });
+        transScenarios.hidden = false;
+      } else {
+        transScenarios.hidden = true;
+      }
+    }
+    if (transDisclaimer) transDisclaimer.hidden = false;
+
+    // stagger 재시작
+    if (transResult) {
+      transResult.dataset.state = 'idle';
+      requestAnimationFrame(() => {
+        transResult.dataset.state = 'ready';
+      });
+    }
+  }
+
+  // 에러 표시
+  function renderError(message) {
+    if (transFrontTitle) transFrontTitle.textContent = '잠깐, 변환에 문제가 있었어요';
+    if (transFrontBody) {
+      transFrontBody.innerHTML = `<p class="trans-error">${message || '다시 한 번 시도해주세요.'}</p>`;
+    }
+    if (transBackTitle) transBackTitle.textContent = '다시 시도해주세요';
+    if (transBackBody) {
+      transBackBody.innerHTML = '<p class="trans-error">시나리오를 더 구체적으로 적어주시거나, 잠시 후 다시 시도해주세요.</p>';
+    }
+    if (transInsight) transInsight.hidden = true;
+    if (transScenarios) transScenarios.hidden = true;
+    if (transDisclaimer) transDisclaimer.hidden = true;
+    if (transResult) transResult.dataset.state = 'idle';
+  }
+
+  // 메인 변환 함수: AI 호출
+  async function translateScenario(userInput) {
+    setLoadingState();
+    try {
+      const prompt = buildTranslatorPrompt(userInput);
+
+      // Vercel Function (서버리스 API) 호출
+      const apiResponse = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+      });
+
+      if (!apiResponse.ok) {
+        // 한도 초과 (429)는 친절한 메시지
+        if (apiResponse.status === 429) {
+          throw new Error('지금 이용량이 많아요. 잠시 후 다시 시도해주세요.');
+        }
+        throw new Error('AI 응답을 받아오는 데 실패했어요. 잠시 후 다시 시도해주세요.');
+      }
+
+      const json = await apiResponse.json();
+      const response = json.text || '';
+      const data = parseAIResponse(response);
+      renderResult(data);
+    } catch (err) {
+      console.error('[Translator] error:', err);
+      renderError(err.message || '예상치 못한 오류가 발생했어요.');
+    } finally {
+      if (transRunBtn) {
+        transRunBtn.disabled = false;
+        transRunBtn.classList.remove('is-loading');
+      }
+    }
+  }
+
+  if (transRunBtn && transInput) {
+    transRunBtn.addEventListener('click', () => {
+      const value = transInput.value.trim();
+      if (!value) {
+        transInput.focus();
+        return;
+      }
+      translateScenario(value);
+    });
+    transInput.addEventListener('keydown', (e) => {
+      // Enter = 제출, Shift+Enter = 줄바꿈 (textarea 기본 동작)
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        transRunBtn.click();
+      }
+    });
+  }
+
+  // 빠른 예시 chips
+  document.querySelectorAll('.trans-preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const text = btn.dataset.preset;
+      if (transInput) transInput.value = text;
+      translateScenario(text);
+    });
+  });
+
+  // ─── Rebound Studio 버튼: 바로 Studio 탭으로 이동 ───
+  const reboundBtn = document.getElementById('reboundStudioBtn');
+  if (reboundBtn) {
+    reboundBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      activateTab('tab-studio');
+    });
+  }
+
+  // ─── Studio iframe 로드 감지: 실패하면 fallback UI 표시 + AI polyfill 주입 ───
+  const studioIframe = document.getElementById('studioIframe');
+  const studioFallback = document.getElementById('studioIframeFallback');
+  if (studioIframe && studioFallback) {
+    let loaded = false;
+
+    // ── window.claude polyfill ──
+    // Studio 내부 코드가 window.claude.complete({system, messages}) 형태로 호출.
+    // 이를 우리 Vercel Function (/api/studio)으로 프록시.
+    function injectClaudePolyfill(targetWindow) {
+      try {
+        targetWindow.claude = {
+          complete: async function (params) {
+            const system = (params && params.system) || '';
+            const messages = (params && params.messages) || [];
+
+            try {
+              const res = await fetch('/api/studio', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ system, messages }),
+              });
+              if (!res.ok) {
+                const errJson = await res.json().catch(() => ({}));
+                throw new Error(errJson.error || ('AI 호출 실패 (' + res.status + ')'));
+              }
+              const json = await res.json();
+              return json.text || '';
+            } catch (err) {
+              console.error('[Studio AI] error:', err);
+              throw err;
+            }
+          },
+        };
+      } catch (e) {
+        console.warn('[Studio AI] polyfill 주입 실패:', e);
+      }
+    }
+
+    // iframe이 로드되기 전에 polyfill을 미리 주입 시도 (가장 빠른 시점)
+    function tryEarlyInject() {
+      try {
+        if (studioIframe.contentWindow) {
+          injectClaudePolyfill(studioIframe.contentWindow);
+        }
+      } catch (e) { /* same-origin 아니면 실패, OK */ }
+    }
+    tryEarlyInject();
+
+    studioIframe.addEventListener('load', () => {
+      loaded = true;
+      // load 이벤트 시점에 polyfill 재주입 (Studio 내부 스크립트는 DOMContentLoaded 이후 실행)
+      injectClaudePolyfill(studioIframe.contentWindow);
+
+      // iframe 안의 bundler가 fetch 실패하면 에러 텍스트만 보일 수 있음
+      // 같은 origin이면 contentDocument로 검사 시도
+      try {
+        const doc = studioIframe.contentDocument;
+        if (doc && doc.body && doc.body.textContent.includes('Failed to fetch')) {
+          studioFallback.hidden = false;
+        }
+      } catch (e) {
+        // cross-origin이면 접근 불가 — 그래도 load는 됐으니 OK로 간주
+      }
+    });
+    // 안전망: 8초 후에도 load 이벤트가 안 오면 fallback 표시
+    setTimeout(() => {
+      if (!loaded) {
+        studioFallback.hidden = false;
+      }
+    }, 8000);
+  }
+
+  // ─── nav 스크롤 시 보더 ───
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 20);
+  });
+
+  // ─── 스크롤 reveal 애니메이션 ───
+  const revealEls = document.querySelectorAll('.reveal-on-scroll');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in-view');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  revealEls.forEach(el => io.observe(el));
+
+  // ─── Rebound 카드 순차 등장 ───
+  const rbTypes = document.querySelectorAll('.rb-type-orb');
+  if (rbTypes.length) {
+    const rbIO = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in-view');
+          rbIO.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.25, rootMargin: '0px 0px -60px 0px' });
+    rbTypes.forEach(el => rbIO.observe(el));
+  }
+
+  // ─── LNB Scroll Spy: tab-concept과 tab-hints에서 각각 작동 ───
+  const sublinkAnchors = document.querySelectorAll('#navSublinks a');
+
+  // tab-concept 섹션 매핑
+  const sectionToSublinkConcept = {
+    'problem': 'problem',
+    'tension': 'tension',
+    'ambiguity': 'tension',
+    'concept': 'concept',
+    'rebound': 'rebound'
+  };
+  // tab-hints는 sub-tab으로 전환되므로 scroll-spy 불필요
+
+  function getActiveTabId() {
+    const activePanel = document.querySelector('.tab-panel.active');
+    return activePanel ? activePanel.id : null;
+  }
+
+  let currentActiveSublink = null;
+
+  function updateActiveSublink() {
+    const activeTabId = getActiveTabId();
+
+    let mapping = null;
+    if (activeTabId === 'tab-concept') mapping = sectionToSublinkConcept;
+    else {
+      // tab-concept이 아닌 다른 탭에서는 모든 sublink 비활성
+      if (currentActiveSublink !== null) {
+        currentActiveSublink = null;
+        sublinkAnchors.forEach(link => link.classList.remove('active'));
+      }
+      return;
+    }
+
+    const trackedSections = Object.keys(mapping)
+      .map(id => document.getElementById(id))
+      .filter(Boolean);
+
+    const scrollPos = window.scrollY + 140;
+    let activeId = null;
+    for (const section of trackedSections) {
+      const top = section.offsetTop;
+      const bottom = top + section.offsetHeight;
+      if (scrollPos >= top && scrollPos < bottom) {
+        activeId = mapping[section.id] || section.id;
+        break;
+      }
+    }
+
+    if (activeId === currentActiveSublink) return;
+    currentActiveSublink = activeId;
+
+    sublinkAnchors.forEach(link => {
+      const isActive = activeId && link.getAttribute('href') === `#${activeId}`;
+      link.classList.toggle('active', isActive);
+    });
+  }
+
+  // LNB 링크 클릭 → 부드러운 스크롤
+  sublinkAnchors.forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const targetId = link.getAttribute('href').replace('#', '');
+      const target = document.getElementById(targetId);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        updateActiveSublink();
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }, { passive: true });
+
+  updateActiveSublink();
+
+  const demoVisible = document.getElementById('demo-visible');
+  const demoHidden = document.getElementById('demo-hidden');
+  const demoReflection = document.getElementById('demo-reflection');
+  const tabs = document.querySelectorAll('.demo-tab');
+
+  const demos = {
+    autoplay: {
+      visible: "하나의 영상이 끝나면 다음 영상이 자동으로 이어져 재생되는, 끊김 없고 매끄러운 시청 경험.",
+      hidden: [
+        '→ <span class="accent">CDN 엣지 서버</span>에 비디오 요청',
+        '→ 디코딩 · 트랜스코딩 · <span class="accent">GPU 가동</span>',
+        '→ 지속적인 <span class="accent">스트림 데이터</span> 전송',
+        '→ 로그 · 분석 · 추천 모델 업데이트'
+      ],
+      total: '= 매끄러운 경험의 대가, 서버는 꺼지지 못해요.',
+      reflection: '정말 모든 사용자가 매번 다음 영상이 자동으로 재생되길 원할까요? 그것이 언제나 좋은 경험을 만들까요?'
+    },
+    infinite: {
+      visible: "스크롤을 내릴수록 새 콘텐츠가 끝없이 로딩되는, 무한한 콘텐츠를 경험할 수 있는 피드 화면.",
+      hidden: [
+        '→ 뷰포트 스크롤 이벤트 감지',
+        '→ <span class="accent">아이템 20~50개 프리페칭</span>',
+        '→ 이미지 · 비디오 썸네일 · <span class="accent">대역폭 소비</span>',
+        '→ 트래킹 픽셀 · 세션 유지'
+      ],
+      total: '= 보지 않을 콘텐츠까지 미리 다운로드, 필요 이상의 프로세싱이 되고 있어요.',
+      reflection: '"끝이 없는 피드"는 사용자에게 자유일까요, 멈추기 어려운 부담일까요? 사용자가 끝을 인식하는 경험은 어떤 새로운 기회를 만들 수 있을까요?'
+    },
+    ai: {
+      visible: '"고마워", "안녕"과 같이 AI에게 무심코 건네는 짧은 인사 한 마디.',
+      hidden: [
+        '→ 프롬프트 토큰 인코딩',
+        '→ <span class="accent">LLM 추론</span> · GPU 클러스터 가동',
+        '→ 토큰 바이 토큰 응답 생성',
+        '→ 컨텍스트 윈도우 유지'
+      ],
+      total: '= 이 짧은 대화만으로도 수천만 달러만큼의 전기 에너지가 소모되고 있어요.',
+      reflection: '사용자에게 이런 에너지 소모량을 알려준다면 어떤 변화가 있을까요? 또 이 변화는 AI와의 관계성에 어떤 변화를 만들어낼까요?'
+    },
+    sync: {
+      visible: "타이핑하는 그 순간 클라우드에 자동으로 저장되는, 안심되는 실시간 동기화.",
+      hidden: [
+        '→ 키 입력마다 <span class="accent">자동 저장 트리거</span>',
+        '→ <span class="accent">버전 히스토리</span> 누적 · 디스크 사용량 증가',
+        '→ 다중 디바이스 동기화 요청',
+        '→ 충돌 해결 · 백업 복제본 생성'
+      ],
+      total: '= 한 줄을 고칠 때마다, 어딘가에는 새로운 사본이 쌓이고 있어요.',
+      reflection: '0.1초마다 저장되는 안심 vs. 잠시 후에 묶어 함께 저장하는 효율, 사용자가 실제로 체감하는 차이는 얼마나 될까요?'
+    },
+    suggest: {
+      visible: "내가 원하는 걸 미리 알고 띄워주는, 똑똑한 AI 자동완성 추천.",
+      hidden: [
+        '→ <span class="accent">키스트로크마다</span> 컨텍스트 분석 요청',
+        '→ <span class="accent">실시간 LLM 추론</span> · 결과 후보 다수 생성',
+        '→ 사용 패턴 학습 데이터 수집',
+        '→ 개인화 모델 재학습 사이클'
+      ],
+      total: '= 내가 누른 적 없는 키워드까지 모델이 미리 계산하고 있어요.',
+      reflection: '사용자가 한 글자 칠 때마다 모델이 다음 문장을 미리 계산하고 있다면, 그건 정말 "도움"일까요, 아니면 "예측 자원의 낭비"일까요?'
+    },
+    push: {
+      visible: "새 메시지가 오면 즉시 알려주는, 놓치지 않는 실시간 알림.",
+      hidden: [
+        '→ 백그라운드 <span class="accent">Long Polling / WebSocket</span> 유지',
+        '→ <span class="accent">푸시 게이트웨이</span> 거쳐 전 디바이스 전파',
+        '→ 알림 로그 · 읽음 상태 동기화',
+        '→ 미수신 시 재전송 · 큐 관리'
+      ],
+      total: '= 알림 한 번을 위해, 서버는 24시간 깨어 있어요.',
+      reflection: '하루에도 수십 개씩 오는 모든 알림이 정말 "즉시"여야 할까요? 묶어서 한 번에 전달되는 게 사용자에게도 더 좋은 경험일 수 있어요.'
+    }
+  };
+
+  // reflection 박스 자체 (show 토글용)
+  const demoReflectionBox = demoReflection ? demoReflection.closest('.demo-reflection') : null;
+  const labelLeft = document.getElementById('demo-label-left');
+  const labelRight = document.getElementById('demo-label-right');
+
+  // 시퀀스 타이머 (탭 전환 시 누적 방지)
+  const sequenceTimers = [];
+  function clearSequenceTimers() {
+    while (sequenceTimers.length) clearTimeout(sequenceTimers.pop());
+  }
+
+  function runDemoSequence(data) {
+    clearSequenceTimers();
+
+    // STEP 0: 즉시 숨김 (transition 없이)
+    //   - .pre-show: opacity 0 + transition: none → 즉시 사라짐 (깜빡임 없음)
+    //   - 이전에 붙어 있을 수 있는 .animating 클래스도 제거
+    [labelLeft, demoVisible, labelRight].forEach(el => {
+      el.classList.remove('animating');
+      el.classList.add('pre-show');
+    });
+    if (demoReflectionBox) {
+      demoReflectionBox.classList.remove('animating');
+      demoReflectionBox.classList.add('pre-show');
+    }
+    demoHidden.classList.remove('active');
+
+    // 강제 reflow: 위 변경이 화면에 반영되도록
+    void demoVisible.offsetWidth;
+
+    // 콘텐츠 채우기 (이미 숨겨진 상태이므로 안 보임)
+    demoVisible.textContent = data.visible;
+    demoHidden.innerHTML =
+      data.hidden.map(line => `<span class="line">${line}</span>`).join('') +
+      `<span class="line total">${data.total}</span>`;
+    if (demoReflection && data.reflection) {
+      demoReflection.textContent = data.reflection;
+    }
+
+    // 등장 시 전환 효과 활성화
+    function reveal(el) {
+      el.classList.add('animating');
+      // 다음 프레임에 pre-show 제거 → transition이 작동
+      requestAnimationFrame(() => {
+        el.classList.remove('pre-show');
+      });
+    }
+
+    // STEP 1: 좌측 라벨 등장
+    sequenceTimers.push(setTimeout(() => reveal(labelLeft), 200));
+
+    // STEP 2: 좌측 본문 등장
+    sequenceTimers.push(setTimeout(() => reveal(demoVisible), 700));
+
+    // STEP 3: 우측 라벨 등장
+    sequenceTimers.push(setTimeout(() => reveal(labelRight), 1500));
+
+    // STEP 4: 백엔드 라인 슬라이드 인 시작
+    sequenceTimers.push(setTimeout(() => {
+      demoHidden.classList.add('active');
+    }, 1900));
+
+    // STEP 5: reflection 등장
+    if (demoReflectionBox && data.reflection) {
+      sequenceTimers.push(setTimeout(() => reveal(demoReflectionBox), 3300));
+    }
+  }
+
+  // 데모 영역이 뷰포트에 들어왔을 때 첫 시퀀스 트리거
+  const demoWrapEl = document.querySelector('.demo-wrap');
+  if (demoWrapEl) {
+    const demoIO = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          runDemoSequence(demos.autoplay);
+          demoIO.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.3 });
+    demoIO.observe(demoWrapEl);
+  }
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+
+      const key = tab.dataset.demo;
+      const data = demos[key];
+
+      runDemoSequence(data);
+    });
+  });
+
+  document.querySelectorAll('[data-card]').forEach(card => {
+    const btn = card.querySelector('.reveal-btn');
+    btn.addEventListener('click', () => {
+      const isRevealed = card.classList.toggle('revealed');
+      btn.innerHTML = isRevealed
+        ? '힌트 닫기 <span class="arr">›</span>'
+        : '힌트 펼쳐보기 <span class="arr">›</span>';
+    });
+  });
+</script>
+
+</body>
+</html>
