@@ -135,7 +135,14 @@ export default async function handler(req, res) {
       if (geminiResponse.status === 429) {
         // 이 모델은 quota 초과. 다음 모델 시도.
         last429Body = await geminiResponse.text();
-        console.warn(`[/api/studio] Model ${model} quota hit, trying next...`);
+        console.warn(`[/api/studio] Model ${model} quota hit (429), trying next...`);
+        continue;
+      }
+
+      // 503 (overloaded), 500, 502, 504 — Google 서버 일시 문제. 다음 모델 시도.
+      if (geminiResponse.status >= 500) {
+        const errBody = await geminiResponse.text();
+        console.warn(`[/api/studio] Model ${model} server error ${geminiResponse.status}, trying next... ${errBody.slice(0, 150)}`);
         continue;
       }
 
