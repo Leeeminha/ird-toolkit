@@ -87,54 +87,91 @@ export default async function handler(req, res) {
     return { role, parts };
   });
 
-  const model = 'gemini-2.5-flash-lite';
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  // 모델 fallback 체인 — 429 시 다음 모델로 자동 전환
+  // 환경변수 GEMINI_MODELS로 override 가능 (콤마 구분)
+  // Gemma 3는 멀티모달 지원 (이미지+텍스트 모두 OK), system은 user 메시지에 prepend됨.
+  const modelChain = (process.env.GEMINI_MODELS || 'gemini-2.5-flash,gemini-2.5-flash-lite,gemma-3-27b-it,gemini-flash-latest')
+    .split(',')
+    .map(m => m.trim())
+    .filter(Boolean);
 
-  const requestBody = {
-    contents,
-    generationConfig: {
-      temperature: 0.7,
-      maxOutputTokens: 2048,
-    },
-  };
-  if (system) {
-    requestBody.systemInstruction = {
-      parts: [{ text: system }],
+  let last429Body = null;
+  for (let i = 0; i < modelChain.length; i++) {
+    const model = modelChain[i];
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+    // 모델별 body 구성 — Gemma는 systemInstruction 미지원, 첫 user 메시지에 prepend
+    const isGemma = model.toLowerCase().startsWith('gemma');
+    let bodyContents = contents;
+    if (isGemma && system && contents.length > 0) {
+      // 첫 user 메시지의 첫 text part에 system 내용을 합침
+      bodyContents = contents.map((c, idx) => {
+        if (idx !== 0 || c.role !== 'user') return c;
+        const newParts = c.parts.map((p, pIdx) => {
+          if (pIdx !== 0 || !p.text) return p;
+          return { text: `[SYSTEM]\n${system}\n[/SYSTEM]\n\n${p.text}` };
+        });
+        return { ...c, parts: newParts };
+      });
+    }
+    const requestBody = {
+      contents: bodyContents,
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 2048,
+      },
     };
-  }
+    if (system && !isGemma) {
+      requestBody.systemInstruction = { parts: [{ text: system }] };
+    }
 
-  try {
-    const geminiResponse = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestBody),
-    });
-
-    if (!geminiResponse.ok) {
-      const errBody = await geminiResponse.text();
-      console.error('[/api/studio] Gemini error:', geminiResponse.status, errBody);
+    try {
+      const geminiResponse = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      });
 
       if (geminiResponse.status === 429) {
-        return res.status(429).json({
-          error: '오늘의 무료 한도에 도달했어요. 자정 이후 다시 시도해주세요.',
+        // 이 모델은 quota 초과. 다음 모델 시도.
+        last429Body = await geminiResponse.text();
+        console.warn(`[/api/studio] Model ${model} quota hit, trying next...`);
+        continue;
+      }
+
+      if (!geminiResponse.ok) {
+        const errBody = await geminiResponse.text();
+        console.error(`[/api/studio] Gemini error on ${model}:`, geminiResponse.status, errBody);
+        return res.status(502).json({
+          error: 'AI 응답을 받아오지 못했어요. 잠시 후 다시 시도해주세요.',
         });
       }
 
-      return res.status(502).json({
-        error: 'AI 응답을 받아오지 못했어요. 잠시 후 다시 시도해주세요.',
-      });
-    }
+      const data = await geminiResponse.json();
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      if (!text) {
+        console.error('[/api/studio] Empty response on', model, ':', JSON.stringify(data));
+        // 빈 응답이면 다음 모델 시도
+        continue;
+      }
 
-    const data = await geminiResponse.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    if (!text) {
-      console.error('[/api/studio] Empty response:', JSON.stringify(data));
-      return res.status(502).json({ error: 'AI가 빈 응답을 반환했어요. 다시 시도해주세요.' });
+      console.log(`[/api/studio] Success on model: ${model}`);
+      return res.status(200).json({ text });
+    } catch (err) {
+      console.error(`[/api/studio] fetch error on ${model}:`, err);
+      // network 에러도 다음 모델 시도
+      continue;
     }
-
-    return res.status(200).json({ text });
-  } catch (err) {
-    console.error('[/api/studio] fetch error:', err);
-    return res.status(500).json({ error: '서버 오류가 발생했어요. 잠시 후 다시 시도해주세요.' });
   }
+
+  // 모든 모델이 실패한 경우
+  if (last429Body) {
+    console.error('[/api/studio] All models hit 429:', last429Body);
+    return res.status(429).json({
+      error: '오늘의 무료 한도에 도달했어요. 자정(Pacific Time) 이후 자동 리셋되어요.',
+    });
+  }
+  return res.status(502).json({
+    error: '모든 모델 호출이 실패했어요. 잠시 후 다시 시도해주세요.',
+  });
 }

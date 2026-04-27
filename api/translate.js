@@ -42,57 +42,71 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Prompt too long' });
   }
 
-  // Gemini API 호출
-  const model = 'gemini-2.5-flash-lite';
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  // 모델 fallback 체인 — 429 시 다음 모델로 자동 전환
+  // Translator는 텍스트 전용이라 Gemma도 사용 가능
+  const modelChain = (process.env.GEMINI_MODELS || 'gemini-2.5-flash,gemini-2.5-flash-lite,gemma-3-27b-it,gemini-flash-latest')
+    .split(',')
+    .map(m => m.trim())
+    .filter(Boolean);
 
-  try {
-    const geminiResponse = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [
-          {
-            role: 'user',
-            parts: [{ text: prompt }],
-          },
-        ],
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 2048,
-        },
-      }),
-    });
+  const requestBody = {
+    contents: [
+      { role: 'user', parts: [{ text: prompt }] },
+    ],
+    generationConfig: {
+      temperature: 0.7,
+      maxOutputTokens: 2048,
+    },
+  };
 
-    // Gemini가 한도 초과 (429) 또는 다른 에러 반환 시
-    if (!geminiResponse.ok) {
-      const errBody = await geminiResponse.text();
-      console.error('[/api/translate] Gemini error:', geminiResponse.status, errBody);
+  let last429Body = null;
+  for (let i = 0; i < modelChain.length; i++) {
+    const model = modelChain[i];
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
-      // 한도 초과를 그대로 클라이언트에 전달
+    try {
+      const geminiResponse = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      });
+
       if (geminiResponse.status === 429) {
-        return res.status(429).json({
-          error: '오늘의 무료 한도에 도달했어요. 자정 이후 다시 시도해주세요.',
+        last429Body = await geminiResponse.text();
+        console.warn(`[/api/translate] Model ${model} quota hit, trying next...`);
+        continue;
+      }
+
+      if (!geminiResponse.ok) {
+        const errBody = await geminiResponse.text();
+        console.error(`[/api/translate] Gemini error on ${model}:`, geminiResponse.status, errBody);
+        return res.status(502).json({
+          error: 'AI 응답을 받아오지 못했어요. 잠시 후 다시 시도해주세요.',
         });
       }
 
-      return res.status(502).json({
-        error: 'AI 응답을 받아오지 못했어요. 잠시 후 다시 시도해주세요.',
-      });
+      const data = await geminiResponse.json();
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      if (!text) {
+        console.error('[/api/translate] Empty response on', model, ':', JSON.stringify(data));
+        continue;
+      }
+
+      console.log(`[/api/translate] Success on model: ${model}`);
+      return res.status(200).json({ text });
+    } catch (err) {
+      console.error(`[/api/translate] fetch error on ${model}:`, err);
+      continue;
     }
-
-    const data = await geminiResponse.json();
-
-    // Gemini 응답 형태에서 텍스트 추출
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    if (!text) {
-      console.error('[/api/translate] Empty response:', JSON.stringify(data));
-      return res.status(502).json({ error: 'AI가 빈 응답을 반환했어요. 다시 시도해주세요.' });
-    }
-
-    return res.status(200).json({ text });
-  } catch (err) {
-    console.error('[/api/translate] fetch error:', err);
-    return res.status(500).json({ error: '서버 오류가 발생했어요. 잠시 후 다시 시도해주세요.' });
   }
+
+  if (last429Body) {
+    console.error('[/api/translate] All models hit 429:', last429Body);
+    return res.status(429).json({
+      error: '오늘의 무료 한도에 도달했어요. 자정(Pacific Time) 이후 자동 리셋되어요.',
+    });
+  }
+  return res.status(502).json({
+    error: '모든 모델 호출이 실패했어요. 잠시 후 다시 시도해주세요.',
+  });
 }
