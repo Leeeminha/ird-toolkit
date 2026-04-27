@@ -25,10 +25,14 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Server misconfigured: API key missing' });
   }
 
-  // 요청 body 파싱
+  // 요청 body 파싱 — Vercel은 일반적으로 자동 parse하지만, 안전하게 string도 처리
   let system, messages;
   try {
-    const body = req.body || {};
+    let body = req.body;
+    if (typeof body === 'string') {
+      body = JSON.parse(body);
+    }
+    body = body || {};
     system = body.system || '';
     messages = Array.isArray(body.messages) ? body.messages : [];
 
@@ -36,7 +40,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing "messages" array' });
     }
   } catch (err) {
-    return res.status(400).json({ error: 'Invalid JSON body' });
+    console.error('[/api/studio] body parse error:', err);
+    return res.status(400).json({ error: 'Invalid JSON body: ' + (err?.message || 'unknown') });
   }
 
   // 너무 긴 요청 거부 (남용 방지) — content가 array면 text 부분만 합산
