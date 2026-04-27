@@ -93,7 +93,7 @@ Error generating stack: `+i.message+`
   · jevons paradox 같은 잘 알려진 개념의 백과 항목
 - 위 도메인의 실제 페이지 URL을 알 때만 refs에 포함하세요. 정확한 URL이 기억나지 않으면 그 도메인 루트(예: https://theshiftproject.org)나 빈 refs를 반환하세요.
 - 가짜 보고서명, 가짜 저자명, 가짜 페이지 경로 절대 금지.
-- 의심되는 출처는 차라리 빼는 게 맞습니다. refs는 0개여도 괜찮아요.`;async function Xn({system:e,messages:t}){const n=await fetch("/api/claude",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({system:e,messages:t})});if(!n.ok){const l=await n.text();throw new Error(`Claude API error ${n.status}: ${l}`)}return(await n.json()).text||""}async function th({node:e,history:t,userMessage:n}){const l=[{role:"user",content:`${e?`현재 선택된 노드:
+- 의심되는 출처는 차라리 빼는 게 맞습니다. refs는 0개여도 괜찮아요.`;async function Xn({system:e,messages:t}){const n=await fetch("/api/studio",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({system:e,messages:t})});if(!n.ok){const l=await n.text();throw new Error(`AI API error ${n.status}: ${l}`)}return(await n.json()).text||""}async function th({node:e,history:t,userMessage:n}){const l=[{role:"user",content:`${e?`현재 선택된 노드:
 - 유형: ${e.type}
 - 내용: ${Vn(e)}
 - 추정 에너지 영향 태그: ${e.energy||"unset"}
