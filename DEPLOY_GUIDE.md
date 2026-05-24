@@ -5,15 +5,15 @@
 
 ---
 
-## STEP 1: Gemini API 키 발급 (5분)
+## STEP 1: Anthropic API 키 발급 (5분)
 
-1. **Google AI Studio** 접속: https://aistudio.google.com/app/apikey
-2. Google 계정으로 로그인 (개인 계정이면 OK)
-3. 우측 상단 **"+ Create API Key"** 클릭
-4. "Create API key in new project" 선택
-5. 생성된 키를 **메모장 등에 복사해두세요** (예: `AIzaSy...`)
+1. **Anthropic Console** 접속: https://console.anthropic.com/
+2. 계정으로 로그인 (없으면 가입)
+3. 좌측 메뉴 **"API Keys"** → **"Create Key"** 클릭
+4. 키 이름을 정하고 생성
+5. 생성된 키를 **메모장 등에 복사해두세요** (예: `sk-ant-...`) — 이 화면을 벗어나면 다시 볼 수 없습니다
 
-> ✨ **중요**: 결제수단을 등록하지 마세요. 무료 tier만 사용하면 어떤 경우에도 비용이 발생하지 않습니다.
+> ✨ **중요**: Anthropic Console의 **Billing → Usage limits**에서 월 사용량 한도를 설정해 두면, 예상치 못한 비용을 방지할 수 있습니다.
 
 ---
 
@@ -104,8 +104,8 @@ git push -u origin main
 
 ### C. 환경변수 등록 (가장 중요!)
 **"Environment Variables"** 섹션에서:
-- **Name**: `GEMINI_API_KEY`
-- **Value**: STEP 1에서 발급받은 Gemini API 키 (붙여넣기)
+- **Name**: `ANTHROPIC_API_KEY`
+- **Value**: STEP 1에서 발급받은 Anthropic API 키 (붙여넣기)
 - **Environment**: Production, Preview, Development **모두 체크**
 
 ### D. 배포 시작:
@@ -153,12 +153,12 @@ git push
 ### "vercel command not found"
 Vercel CLI를 사용하지 않아도 배포 가능. 위 STEP 4-B처럼 GUI에서 import하면 됨.
 
-### "Gemini API error: 429"
-오늘의 무료 한도(1,000 RPD)에 도달. 자정(태평양 시간) 이후 자동 리셋.
+### "AI 응답 실패" 에러 / 429 (Rate limit)
+일시적으로 요청이 많을 때 발생할 수 있습니다. 잠시 후 다시 시도하세요. 반복되면 Anthropic Console에서 사용량 한도(usage limit)와 현재 사용량을 확인하세요.
 
 ### "AI 응답 실패" 에러가 계속 발생
 1. Vercel 대시보드 → 프로젝트 → Settings → Environment Variables
-2. `GEMINI_API_KEY`가 등록되어 있는지 확인
+2. `ANTHROPIC_API_KEY`가 등록되어 있는지 확인
 3. 키 값이 올바른지 (앞뒤 공백 없이) 확인
 4. 변경 후 **"Redeploy"** 필요
 
@@ -174,7 +174,10 @@ ird-toolkit/
 ├── index.html                       # 메인 페이지 (모든 탭, 5개 화면)
 ├── rebound-design-studio.html       # Studio iframe (정적 빌드)
 ├── api/
-│   └── translate.js                 # Vercel Function — Gemini AI 프록시
+│   ├── translate.js                 # Vercel Function — Translator용 Claude API 프록시 (+ RAG)
+│   ├── studio.js                    # Vercel Function — Studio AI용 Claude API 프록시 (+ RAG)
+│   ├── rag.js                       # corpus.json 기반 경량 키워드 검색
+│   └── corpus.json                  # 선별된 학술 문헌 발췌 모음 (RAG 소스)
 ├── package.json                     # Vercel 프로젝트 메타
 ├── vercel.json                      # Vercel 라우팅 설정
 ├── .gitignore                       # Git 무시 파일
