@@ -1,48 +1,50 @@
-// /api/rag.js  (helper, imported by studio.js)
+// /api/rag.js  (CommonJS helper, required by studio.js)
 // Lightweight keyword-overlap retrieval over a small curated corpus.
-// Not a vector DB — just enough to surface a few relevant excerpts to
-// pass into the prompt as "reference material the model should prefer."
+// CommonJS so it runs whether or not the project sets "type":"module".
 
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+const { readFileSync } = require("node:fs");
+const { join } = require("node:path");
 
-// Load the corpus without relying on JSON import attributes, whose syntax
-// (`assert` vs `with`) differs across Node versions and can break on Vercel.
-// readFileSync works regardless of the runtime's Node version.
-const corpusPath = fileURLToPath(new URL("./corpus.json", import.meta.url));
-const corpus = JSON.parse(readFileSync(corpusPath, "utf8"));
+// Load corpus.json from the same directory as this file.
+let corpus = [];
+try {
+  const raw = readFileSync(join(__dirname, "corpus.json"), "utf8");
+  corpus = JSON.parse(raw);
+} catch (err) {
+  // Never let a corpus load failure crash the function; just disable RAG.
+  console.error("[/api/rag] failed to load corpus.json:", err && err.message ? err.message : err);
+  corpus = [];
+}
 
 // Very small tokenizer: lowercased word/Hangul runs.
 function tokenize(s) {
   return (String(s || "").toLowerCase().match(/[a-z0-9]+|[가-힣]{2,}/g)) || [];
 }
 
-// Does any query token match this keyword?
-// - exact match always counts
-// - for Hangul keywords of length >= 2, also count if a query token CONTAINS
-//   the keyword (e.g. "효율을" contains "효율"). This absorbs Korean particles
-//   and verb endings that the whitespace tokenizer would otherwise split off.
-//   English keywords stay exact-match (substring would over-match, e.g. "css"
-//   inside "success"); 1-char keywords stay exact (avoid "물" inside "물건").
-const HANGUL = /[가-힣]/;
-function matches(kw, qTokensArr) {
-  if (kw.length >= 2 && HANGUL.test(kw)) {
-    return qTokensArr.some((t) => t === kw || t.includes(kw));
-  }
-  return qTokensArr.includes(kw);
-}
-
 // Score each corpus item by keyword overlap with the user's scenario text.
-export function retrieve(queryText, k = 3) {
-  const qTokensArr = tokenize(queryText);
-  if (qTokensArr.length === 0) return [];
+// Korean keywords (>=2 chars) use substring matching to absorb particles/endings;
+// English and 1-char tokens use exact matching to avoid false hits.
+function retrieve(queryText, k) {
+  if (k === undefined) k = 3;
+  const q = String(queryText || "").toLowerCase();
+  const qTokens = new Set(tokenize(queryText));
+  if (q.length === 0) return [];
+
+  const isHangul = (s) => /[가-힣]/.test(s);
 
   const scored = corpus.map((item) => {
-    const keys = (item.keywords || []).flatMap(tokenize);
+    const keys = item.keywords || [];
     let score = 0;
-    for (const kw of keys) if (matches(kw, qTokensArr)) score += 1;
-    // also lightly reward overlap with the excerpt itself (exact only)
-    for (const t of tokenize(item.excerpt)) if (qTokensArr.includes(t)) score += 0.2;
+    for (const kw of keys) {
+      const k2 = String(kw).toLowerCase();
+      if (!k2) continue;
+      if (isHangul(k2) && k2.length >= 2) {
+        if (q.includes(k2)) score += 1;          // substring (absorbs 조사/어미)
+      } else {
+        if (qTokens.has(k2)) score += 1;         // exact for English / short tokens
+      }
+    }
+    for (const t of tokenize(item.excerpt)) if (qTokens.has(t)) score += 0.2;
     return { item, score };
   });
 
@@ -54,7 +56,7 @@ export function retrieve(queryText, k = 3) {
 }
 
 // Format retrieved items as a compact reference block for the system prompt.
-export function buildReferenceBlock(items) {
+function buildReferenceBlock(items) {
   if (!items || items.length === 0) return "";
   const lines = items.map(
     (it) => `- [${it.label}] ${it.excerpt}${it.url ? ` (출처: ${it.url})` : ""}`
@@ -68,3 +70,5 @@ export function buildReferenceBlock(items) {
     ...lines,
   ].join("\n");
 }
+
+module.exports = { retrieve, buildReferenceBlock };
