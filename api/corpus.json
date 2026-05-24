@@ -1,8 +1,8 @@
 [
   {
     "id": "birgersson2021-mindful-friction",
-    "label": "Birgersson (2021), Sustainable UX: Integrating Behavioural Psychology in the User-Centered Design Process",
-    "url": "https://scholar.google.com/scholar?q=Birgersson+Sustainable+UX+behavioural+psychology+user-centered+design",
+    "label": "Birgersson (2021), Sustainable UX: Integrating Behavioural Psychology in the User-Centered Design Process, Proceedings of the 21st Student Conference in Interaction Technology and Design, Umeå University, June 2021",
+    "url": "https://www.diva-portal.org/smash/get/diva2:1574853/FULLTEXT01.pdf#page=138",
     "keywords": [
       "mindful design",
       "design friction",
@@ -32,8 +32,8 @@
   },
   {
     "id": "birgersson2021-designer-intent",
-    "label": "Birgersson (2021), Sustainable UX: Integrating Behavioural Psychology in the User-Centered Design Process",
-    "url": "https://scholar.google.com/scholar?q=Birgersson+Sustainable+UX+behavioural+psychology+user-centered+design",
+    "label": "Birgersson (2021), Sustainable UX: Integrating Behavioural Psychology in the User-Centered Design Process, Proceedings of the 21st Student Conference in Interaction Technology and Design, Umeå University, June 2021",
+    "url": "https://www.diva-portal.org/smash/get/diva2:1574853/FULLTEXT01.pdf#page=138",
     "keywords": [
       "designer intent",
       "디자이너 의도",
@@ -59,8 +59,8 @@
   },
   {
     "id": "birgersson2021-intention-habit-TIB",
-    "label": "Birgersson (2021), Sustainable UX: Integrating Behavioural Psychology in the User-Centered Design Process",
-    "url": "https://scholar.google.com/scholar?q=Birgersson+Sustainable+UX+behavioural+psychology+user-centered+design",
+    "label": "Birgersson (2021), Sustainable UX: Integrating Behavioural Psychology in the User-Centered Design Process, Proceedings of the 21st Student Conference in Interaction Technology and Design, Umeå University, June 2021",
+    "url": "https://www.diva-portal.org/smash/get/diva2:1574853/FULLTEXT01.pdf#page=138",
     "keywords": [
       "intention",
       "의도",
@@ -278,7 +278,7 @@
   {
     "id": "comber2023-infrastructure-water-energy",
     "label": "Comber & Eriksson (2023), Computing as Ecocide (figures reported therein)",
-    "url": "https://limits.pubpub.org/pub/a8h46wqy",
+    "url": "https://doi.org/10.21428/bf6fb269.9fcdd0c0",
     "keywords": [
       "data centre",
       "데이터센터",
@@ -311,7 +311,7 @@
   {
     "id": "comber2023-ewaste-hardware",
     "label": "Comber & Eriksson (2023), Computing as Ecocide (figures reported therein)",
-    "url": "https://limits.pubpub.org/pub/a8h46wqy",
+    "url": "https://doi.org/10.21428/bf6fb269.9fcdd0c0",
     "keywords": [
       "e-waste",
       "전자폐기물",
@@ -1810,8 +1810,8 @@
     "excerpt": "최근 연구들은 경험 품질(QoE)을 일부러 다소 낮추어도 사용자가 받아들일 만한 영역이 있고, 거기서 에너지를 줄일 수 있음을 보인다. 한 모델은 영상 스트리밍에서 QoE 수준에 따른 에너지 소비를 CO2 배출로 환산해, 기기·네트워크 종류까지 고려하며 '수용 가능한 QoE를 지키면서도 에너지를 줄일 수 있는 지점'이 있음을 시각화했고, 다른 연구는 실제 유튜브 데이터로 코덱·해상도·프레임레이트·비트레이트 선택이 전력 효율을 좌우함을 보였다. 저자들은 이를 사용자 쪽으로도 확장해, HD 대신 표준 화질을 권하거나, 유튜브를 배경음으로 틀 때 오디오 전용으로 바꾸도록 넛지하거나, 맥락과 목적에 따라 가장 덜 무거운 시청 구성으로 유도하는 식의 개입을 제안한다. 다만 사용자가 자기 디지털 탄소 발자국을 잘 모르고, 알게 되어도 극적인 행동 변화는 기대하기 어렵다는 점에서, 핵심 과제는 '지불 의향(willingness to pay)'을 넘어 '양보 의향(willingness to sacrifice)'을 어떤 조건에서 끌어낼 수 있는지를 이해하는 것이다."
   },
   {
-    "id": "dechirico2024-hyperlinear-discard",
-    "label": "De Chirico & Vacanti (2024), AI Waste: The invisible hyper-linear model of Generative AI, RSD13 (single-image energy figure reported therein, after Luccioni et al. 2023)",
+    "id": "dechirico2025-hyperlinear-discard",
+    "label": "De Chirico & Vacanti (2025), AI Waste: The invisible hyper-linear model of Generative AI, RSD13 (single-image energy figure reported therein, after Luccioni et al. 2023)",
     "url": "https://rsdsymposium.org/ai-waste-the-invisible-hyper-linear-model-of-generative-ai/",
     "keywords": [
       "generative ai",
@@ -1839,8 +1839,8 @@
     "focus": "data-demand"
   },
   {
-    "id": "dechirico2024-default-output-count",
-    "label": "De Chirico & Vacanti (2024), AI Waste, RSD13 (tool behaviours as of April 2024 reported therein)",
+    "id": "dechirico2025-default-output-count",
+    "label": "De Chirico & Vacanti (2025), AI Waste, RSD13 (tool behaviours as of April 2024 reported therein)",
     "url": "https://rsdsymposium.org/ai-waste-the-invisible-hyper-linear-model-of-generative-ai/",
     "keywords": [
       "기본 출력 개수",
@@ -1868,8 +1868,8 @@
     "focus": "data-demand"
   },
   {
-    "id": "dechirico2024-make-discard-retrievable",
-    "label": "De Chirico & Vacanti (2024), AI Waste, RSD13",
+    "id": "dechirico2025-make-discard-retrievable",
+    "label": "De Chirico & Vacanti (2025), AI Waste, RSD13",
     "url": "https://rsdsymposium.org/ai-waste-the-invisible-hyper-linear-model-of-generative-ai/",
     "keywords": [
       "버린 결과 재사용",
@@ -2161,7 +2161,7 @@
   },
   {
     "id": "thibault2025-frugal-baseline",
-    "label": "Thibault et al. (2025), Environmental (in)considerations in Smartphone Settings, LIMITS'25 (design principle: make frugal options desirable)",
+    "label": "Thibault et al. (2025), Environmental (in)considerations in the Design of Smartphone Settings, LIMITS'25 (design principle: make frugal options desirable)",
     "url": "https://arxiv.org/abs/2507.19094",
     "keywords": [
       "저화질을 기본으로",
@@ -2192,7 +2192,7 @@
   },
   {
     "id": "thibault2025-preview-effects",
-    "label": "Thibault et al. (2025), Environmental (in)considerations in Smartphone Settings, LIMITS'25 (design principle: preview effects to encourage moderate use)",
+    "label": "Thibault et al. (2025), Environmental (in)considerations in the Design of Smartphone Settings, LIMITS'25 (design principle: preview effects to encourage moderate use)",
     "url": "https://arxiv.org/abs/2507.19094",
     "keywords": [
       "설정 효과 안 보임",
@@ -2222,7 +2222,7 @@
   },
   {
     "id": "thibault2025-scattered-access",
-    "label": "Thibault et al. (2025), Environmental (in)considerations in Smartphone Settings, LIMITS'25 (anti-patterns: settings scattered and hard to locate; design principle on access)",
+    "label": "Thibault et al. (2025), Environmental (in)considerations in the Design of Smartphone Settings, LIMITS'25 (anti-patterns: settings scattered and hard to locate; design principle on access)",
     "url": "https://arxiv.org/abs/2507.19094",
     "keywords": [
       "설정 숨겨짐",
@@ -2253,7 +2253,7 @@
   },
   {
     "id": "kiourtis2024-minimalism-dataload",
-    "label": "Kiourtis, Mavrogiorgou, Zafeiropoulos, Mavrogiorgos, Karabetian & Kyriazis (2024), UI/UX Sustainable Design, 9th SEEDA-CECNSM (IEEE) (sustainable UI design: minimalist design and UX architecture)",
+    "label": "Kiourtis, Mavrogiorgou, Zafeiropoulos, Mavrogiorgos, Karabetian & Kyriazis (2024), UI/UX Sustainable Design: Best Practices for Applications CO2 Emissions Reduction, 9th Int. Conf. on Smart and Sustainable Technologies (SpliTech), IEEE (sustainable UI design: minimalist design and UX architecture)",
     "url": "https://ieeexplore.ieee.org/document/10612495",
     "keywords": [
       "미니멀",
@@ -2283,7 +2283,7 @@
   },
   {
     "id": "kiourtis2024-darkmode-display",
-    "label": "Kiourtis, Mavrogiorgou, Zafeiropoulos, Mavrogiorgos, Karabetian & Kyriazis (2024), UI/UX Sustainable Design, 9th SEEDA-CECNSM (IEEE) (sustainable UI design: energy-efficient color schemes)",
+    "label": "Kiourtis, Mavrogiorgou, Zafeiropoulos, Mavrogiorgos, Karabetian & Kyriazis (2024), UI/UX Sustainable Design: Best Practices for Applications CO2 Emissions Reduction, 9th Int. Conf. on Smart and Sustainable Technologies (SpliTech), IEEE (sustainable UI design: energy-efficient color schemes)",
     "url": "https://ieeexplore.ieee.org/document/10612495",
     "keywords": [
       "다크모드",
@@ -2311,7 +2311,7 @@
   },
   {
     "id": "kiourtis2024-carbon-feedback",
-    "label": "Kiourtis, Mavrogiorgou, Zafeiropoulos, Mavrogiorgos, Karabetian & Kyriazis (2024), UI/UX Sustainable Design, 9th SEEDA-CECNSM (IEEE) (best practices: measuring/reporting carbon footprint; CO2 displays; user education)",
+    "label": "Kiourtis, Mavrogiorgou, Zafeiropoulos, Mavrogiorgos, Karabetian & Kyriazis (2024), UI/UX Sustainable Design: Best Practices for Applications CO2 Emissions Reduction, 9th Int. Conf. on Smart and Sustainable Technologies (SpliTech), IEEE (best practices: measuring/reporting carbon footprint; CO2 displays; user education)",
     "url": "https://ieeexplore.ieee.org/document/10612495",
     "keywords": [
       "탄소 측정",
