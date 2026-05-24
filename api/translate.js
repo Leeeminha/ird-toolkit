@@ -1,119 +1,109 @@
 // /api/translate.js
-// Vercel Serverless Function — Gemini API 프록시
-// Gemini 2.5 Flash-Lite 사용 (무료 tier, 1,000 RPD)
+// Vercel Serverless Function (CommonJS) — Backend Translator AI proxy (Claude).
+// Proxies to the Anthropic Messages API using ANTHROPIC_API_KEY,
+// and augments the system prompt with a few relevant corpus excerpts (light RAG).
 
-export default async function handler(req, res) {
-  // CORS 헤더 (같은 도메인이면 불필요하지만 안전)
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+const { retrieve, buildReferenceBlock } = require("./rag.js");
 
-  // OPTIONS preflight
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
+const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
+const MODEL = "claude-sonnet-4-6";   // quality/cost balance for short speculative replies
+const MAX_TOKENS = 2048;
 
-  // POST만 허용
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+module.exports = async function handler(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  // 환경변수 검증
-  const apiKey = process.env.GEMINI_API_KEY;
+  if (req.method === "OPTIONS") return res.status(200).end();
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+
+  const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    console.error('[/api/translate] GEMINI_API_KEY not set');
-    return res.status(500).json({ error: 'Server misconfigured: API key missing' });
+    console.error("[/api/translate] ANTHROPIC_API_KEY not set");
+    return res.status(500).json({ error: "Server misconfigured: API key missing" });
   }
 
-  // 요청 body 파싱
-  let prompt;
+  // parse body
+  let system, messages;
   try {
-    const body = req.body || {};
-    prompt = body.prompt;
-    if (!prompt || typeof prompt !== 'string') {
-      return res.status(400).json({ error: 'Missing or invalid "prompt" in body' });
+    let body = req.body;
+    if (typeof body === "string") body = JSON.parse(body);
+    body = body || {};
+    system = body.system || "";
+    messages = Array.isArray(body.messages) ? body.messages : [];
+    if (messages.length === 0) {
+      return res.status(400).json({ error: 'Missing "messages" array' });
     }
   } catch (err) {
-    return res.status(400).json({ error: 'Invalid JSON body' });
+    console.error("[/api/translate] body parse error:", err);
+    return res.status(400).json({ error: "Invalid JSON body: " + (err && err.message ? err.message : "unknown") });
   }
 
-  // 너무 긴 프롬프트는 거부 (남용 방지)
-  if (prompt.length > 8000) {
-    return res.status(400).json({ error: 'Prompt too long' });
+  // length guard (abuse prevention)
+  const messageLen = messages.reduce((sum, m) => {
+    if (typeof m.content === "string") return sum + m.content.length;
+    if (Array.isArray(m.content)) {
+      return sum + m.content.reduce((s, p) => s + (p && typeof p.text === "string" ? p.text.length : 0), 0);
+    }
+    return sum;
+  }, 0);
+  if ((system && system.length ? system.length : 0) + messageLen > 12000) {
+    return res.status(400).json({ error: "Request too long" });
   }
 
-  // 모델 fallback 체인 — 429 시 다음 모델로 자동 전환
-  // Translator는 텍스트 전용이라 Gemma도 사용 가능
-  const modelChain = (process.env.GEMINI_MODELS || 'gemini-2.5-flash,gemini-2.5-flash-lite,gemma-3-27b-it,gemini-flash-latest')
-    .split(',')
-    .map(m => m.trim())
-    .filter(Boolean);
-
-  const requestBody = {
-    contents: [
-      { role: 'user', parts: [{ text: prompt }] },
-    ],
-    generationConfig: {
-      temperature: 0.7,
-      maxOutputTokens: 2048,
-    },
-  };
-
-  let last429Body = null;
-  for (let i = 0; i < modelChain.length; i++) {
-    const model = modelChain[i];
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-
-    try {
-      const geminiResponse = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (geminiResponse.status === 429) {
-        last429Body = await geminiResponse.text();
-        console.warn(`[/api/translate] Model ${model} quota hit (429), trying next...`);
-        continue;
-      }
-
-      // 503 (overloaded), 500, 502, 504 — Google 서버 일시 문제. 다음 모델 시도.
-      if (geminiResponse.status >= 500) {
-        const errBody = await geminiResponse.text();
-        console.warn(`[/api/translate] Model ${model} server error ${geminiResponse.status}, trying next... ${errBody.slice(0, 150)}`);
-        continue;
-      }
-
-      if (!geminiResponse.ok) {
-        const errBody = await geminiResponse.text();
-        console.error(`[/api/translate] Gemini error on ${model}:`, geminiResponse.status, errBody);
-        return res.status(502).json({
-          error: 'AI 응답을 받아오지 못했어요. 잠시 후 다시 시도해주세요.',
-        });
-      }
-
-      const data = await geminiResponse.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      if (!text) {
-        console.error('[/api/translate] Empty response on', model, ':', JSON.stringify(data));
-        continue;
-      }
-
-      console.log(`[/api/translate] Success on model: ${model}`);
-      return res.status(200).json({ text });
-    } catch (err) {
-      console.error(`[/api/translate] fetch error on ${model}:`, err);
-      continue;
+  // ── light RAG: pull a few relevant corpus excerpts from the user text ──
+  let queryText = "";
+  for (const m of messages) {
+    if (m.role !== "user") continue;
+    if (typeof m.content === "string") queryText += " " + m.content;
+    else if (Array.isArray(m.content)) {
+      for (const p of m.content) if (p && p.type === "text") queryText += " " + (p.text || "");
     }
   }
-
-  if (last429Body) {
-    console.error('[/api/translate] All models hit 429:', last429Body);
-    return res.status(429).json({
-      error: '오늘의 무료 한도에 도달했어요. 자정(Pacific Time) 이후 자동 리셋되어요.',
-    });
+  let augmentedSystem = system;
+  try {
+    const hits = retrieve(queryText, 3);
+    const refBlock = buildReferenceBlock(hits);
+    if (refBlock) augmentedSystem = (system || "") + "\n" + refBlock;
+  } catch (err) {
+    // RAG is best-effort; never block a response if retrieval fails.
+    console.error("[/api/translate] RAG retrieve failed (continuing without it):", err && err.message ? err.message : err);
   }
-  return res.status(502).json({
-    error: '모든 모델 호출이 실패했어요. 잠시 후 다시 시도해주세요.',
-  });
-}
+
+  // ── call Anthropic ──
+  try {
+    const r = await fetch(ANTHROPIC_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: MAX_TOKENS,
+        system: augmentedSystem,
+        messages: messages,
+      }),
+    });
+
+    if (!r.ok) {
+      const errText = await r.text().catch(() => "");
+      console.error("[/api/translate] Anthropic error:", r.status, errText);
+      return res.status(502).json({ error: "AI 응답을 받아오는 데 실패했어요. 잠시 후 다시 시도해주세요." });
+    }
+
+    const data = await r.json();
+    const text = Array.isArray(data && data.content)
+      ? data.content.filter((b) => b && b.type === "text").map((b) => b.text).join("")
+      : "";
+    if (!text) {
+      console.error("[/api/translate] Empty response:", JSON.stringify(data));
+      return res.status(502).json({ error: "AI가 빈 응답을 반환했어요. 다시 시도해주세요." });
+    }
+    return res.status(200).json({ text });
+  } catch (err) {
+    console.error("[/api/translate] fetch error:", err);
+    return res.status(500).json({ error: "서버 오류가 발생했어요. 잠시 후 다시 시도해주세요." });
+  }
+};
