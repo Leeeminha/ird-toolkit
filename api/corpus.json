@@ -3591,6 +3591,54 @@
     ],
     "excerpt": "Making energy data visible, through a battery indicator or by surfacing consumption, can foster literacy at the point of design. But the goal is not to frame energy impact as something users must fix through individual behaviour, which slides into victim blaming. A designer can use such cues to make their decisions' effects legible to themselves and engineers, not to shift the burden onto users.",
     "focus": "both"
-  }
+  },
+  {
+  "id": "beignon2025-prominence-spatial",
+  "label": "Beignon, Thibault & Maudet (2025), Imposing AI, LIMITS'25 (first of two strategies: imposing AI at the expense of non-AI features)",
+  "url": "https://arxiv.org/abs/2508.08672",
+  "keywords": ["AI 버튼","AI button","스파클 아이콘","spark icon","반짝이 아이콘","그라데이션","gradient","눈에 띄게","제일 좋은 자리","toolbar 상단","툴바","AI 강조","화면 차지","takes up space","floating button","플로팅 버튼","AI 먼저 보임","시각적 위계","visual prominence","AI 부각","컬러풀","애니메이션 아이콘"],
+  "excerpt": "Because an interface is finite space, every pixel given to an AI feature is taken from something else. Beignon and colleagues show AI features claiming the most valuable positions through colour, gradients, animated icons, and floating buttons while ordinary functions stay static and grey. A designer can ask whether a new feature earns its visual weight, or whether prominence is being used to manufacture demand the experience does not need.",
+  "focus": "data-demand"
+},
+{
+  "id": "beignon2025-default-friction",
+  "label": "Beignon, Thibault & Maudet (2025), Imposing AI, LIMITS'25 (section on imposing AI by default)",
+  "url": "https://arxiv.org/abs/2508.08672",
+  "keywords": ["기본값 켜짐","on by default","기본 활성화","끄기 어려움","hard to turn off","비활성화","deactivate","무시 안 됨","nagging","끼어들기","스페이스바로 실행","실수로 켜짐","accidental trigger","나중에 하기","maybe later","ignore for now","임시로 끄기","제거 불가","unremovable","끌 수 없는","마찰","friction","의도치 않은 사용"],
+  "excerpt": "Beignon and colleagues note that AI features are often enabled by default, easy to trigger by accident, and resistant to permanent dismissal, with refusal phrased as \"maybe later\" rather than a firm no. The default and the friction together decide use far more than any explicit choice. A designer can ask whether the default state assumes consumption, and whether opting out is as easy as opting in.",
+  "focus": "data-demand"
+},
+{
+  "id": "beignon2025-magic-invisibility",
+  "label": "Beignon, Thibault & Maudet (2025), Imposing AI, LIMITS'25 (second strategy: misleading technology narratives)",
+  "url": "https://arxiv.org/abs/2508.08672",
+  "keywords": ["매직 메타포","magic metaphor","마법처럼","instant 응답","즉시 답변","계산 숨김","invisible machine","비용 안 보임","무게감 없음","immaterial","비물질","어시스턴트","assistant","의인화","humanlike","사람처럼","위장된 비용","resource intensive","자원 많이 씀","메타포가 가림","느린데 빠른 척","wonder","경이로움","AI는 그냥 좋다"],
+  "excerpt": "Beignon and colleagues argue that framing AI as magic or as a tireless assistant makes the machine's heavy computation invisible, so users stop asking why a response is slow or what it costs. The metaphor sells effortlessness while hiding the resources beneath. A designer can ask whether the words and icons around a feature describe what it actually does, or quietly excuse its material weight.",
+  "focus": "rebound"
+},
+{
+  "id": "thibault2025-frugal-baseline",
+  "label": "Thibault et al. (2025), Environmental (in)considerations in Smartphone Settings, LIMITS'25 (design principle: make frugal options desirable)",
+  "url": "https://arxiv.org/abs/2507.19094",
+  "keywords": ["저화질을 기본으로","low quality 라벨","열등한 옵션","lesser option","downgrade 느낌","낮추면 손해","기준점","baseline","neutral state","중립 상태","over-performing 모드","정상 모드로","normal mode","프레이밍","framing","절약 옵션","frugal","검소한 선택","나쁜 선택처럼 보임","낙인","스위치 투 로우","switch to low"],
+  "excerpt": "Thibault and colleagues observe that frugal options are usually framed as a downgrade, labelled \"low\" against a \"full experience\" so users only see what they lose. They propose flipping the baseline: present the sustainable option as the normal state and the intensive one as over-performing. A designer can ask which option their wording treats as the neutral default, and whether the frugal choice is being quietly stigmatised.",
+  "focus": "data-demand"
+},
+{
+  "id": "thibault2025-preview-effects",
+  "label": "Thibault et al. (2025), Environmental (in)considerations in Smartphone Settings, LIMITS'25 (design principle: preview effects to encourage moderate use)",
+  "url": "https://arxiv.org/abs/2507.19094",
+  "keywords": ["설정 효과 안 보임","preview","효과 미리보기","얼마나 절약","how much data","숫자로만","low high 모호","뭐가 다른지 모름","체감 차이","perceivable difference","HD UHD 차이","compromise 보여주기","절충","무거운 옵션은 무겁게","설명 부족","intelligibility","의미 전달","왜 이걸 켜야 하지","효과 가시화","make visible","비교 제공"],
+  "excerpt": "Thibault and colleagues find settings rarely show what they do, offering vague labels like \"low\" or \"high\" with no sense of what is saved or whether the difference is even perceptible. They suggest previewing effects so a heavier option feels heavier and a compromise reads as a compromise. A designer can ask whether a setting lets someone feel its consequence, or hides the trade-off behind an empty word.",
+  "focus": "data-demand"
+},
+{
+  "id": "thibault2025-scattered-access",
+  "label": "Thibault et al. (2025), Environmental (in)considerations in Smartphone Settings, LIMITS'25 (anti-patterns: settings scattered and hard to locate; design principle on access)",
+  "url": "https://arxiv.org/abs/2507.19094",
+  "keywords": ["설정 숨겨짐","buried setting","메뉴 깊숙이","menu depth","찾기 어려움","hard to find","흩어진 설정","scattered","앱마다 위치 다름","이름 제각각","inconsistent naming","접근성","accessibility","빠른 접근","shortcut","바로가기","엉뚱한 카테고리","접근성 메뉴 속 화질","못 찾음","재학습","relocate","꺼내 쓰기 쉽게"],
+  "excerpt": "Thibault and colleagues show that environmental settings sit buried in deep, inconsistent menus, named differently across apps so knowledge learned in one place cannot transfer, which leaves defaults to govern by inertia. Burial is itself a design decision about how often a control is used. A designer can ask how many taps a moderating option takes to reach, and whether it is findable at the moment of choice.",
+  "focus": "data-demand"
+}
 
 ]
