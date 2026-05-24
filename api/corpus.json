@@ -3639,6 +3639,30 @@
   "keywords": ["설정 숨겨짐","buried setting","메뉴 깊숙이","menu depth","찾기 어려움","hard to find","흩어진 설정","scattered","앱마다 위치 다름","이름 제각각","inconsistent naming","접근성","accessibility","빠른 접근","shortcut","바로가기","엉뚱한 카테고리","접근성 메뉴 속 화질","못 찾음","재학습","relocate","꺼내 쓰기 쉽게"],
   "excerpt": "Thibault and colleagues show that environmental settings sit buried in deep, inconsistent menus, named differently across apps so knowledge learned in one place cannot transfer, which leaves defaults to govern by inertia. Burial is itself a design decision about how often a control is used. A designer can ask how many taps a moderating option takes to reach, and whether it is findable at the moment of choice.",
   "focus": "data-demand"
+},
+{
+  "id": "kiourtis2024-minimalism-dataload",
+  "label": "Kiourtis, Mavrogiorgou, Zafeiropoulos, Mavrogiorgos, Karabetian & Kyriazis (2024), UI/UX Sustainable Design, 9th SEEDA-CECNSM (IEEE) (sustainable UI design: minimalist design and UX architecture)",
+  "url": "https://ieeexplore.ieee.org/document/10612495",
+  "keywords": ["미니멀","minimalist","요소 줄이기","불필요한 요소","데이터 로드","data load","무거운 페이지","lazy loading","레이지 로딩","스크롤할 때 로드","이미지 개수","hundreds of images","데이터집약 요소","data-intensive","페이지 무게","page weight","빠른 로딩","적게 담기","꼭 필요한가","요소 정리","스크립트 줄이기"],
+  "excerpt": "Kiourtis and colleagues frame minimalism as a sustainability move: removing unnecessary elements and deferring images until a user scrolls (lazy loading) cuts the data and processing a page demands, not just its clutter. The guiding question they pose is whether a screen really needs hundreds of images or auto-loaded media at all. A designer can ask which elements on a page earn their data load, and which could simply not load until needed.",
+  "focus": "data-demand"
+},
+{
+  "id": "kiourtis2024-darkmode-display",
+  "label": "Kiourtis, Mavrogiorgou, Zafeiropoulos, Mavrogiorgos, Karabetian & Kyriazis (2024), UI/UX Sustainable Design, 9th SEEDA-CECNSM (IEEE) (sustainable UI design: energy-efficient color schemes)",
+  "url": "https://ieeexplore.ieee.org/document/10612495",
+  "keywords": ["다크모드","dark mode","어두운 배경","OLED","화면 에너지","screen energy","디스플레이 소비","색상 에너지","energy-efficient color","밝은 배경","흰 배경","색 선택","color scheme","배터리 절약","기기 배터리","픽셀 발광","어두운 색","디스플레이 전력","화면 밝기"],
+  "excerpt": "Kiourtis and colleagues note that colour choices are not energy-neutral: on OLED displays a dark scheme draws far less power than a bright background, because dark pixels emit less light. The palette is itself a consumption decision sitting on the device side, not just an aesthetic one. A designer can ask whether the default colour scheme assumes a bright canvas, and whether offering or defaulting to a darker one would lighten the load on the screen.",
+  "focus": "data-demand"
+},
+{
+  "id": "kiourtis2024-carbon-feedback",
+  "label": "Kiourtis, Mavrogiorgou, Zafeiropoulos, Mavrogiorgos, Karabetian & Kyriazis (2024), UI/UX Sustainable Design, 9th SEEDA-CECNSM (IEEE) (best practices: measuring/reporting carbon footprint; CO2 displays; user education)",
+  "url": "https://ieeexplore.ieee.org/document/10612495",
+  "keywords": ["탄소 측정","carbon footprint","CO2 표시","CO2 display","배출량 보여주기","측정 도구","website emissions","탄소 계산기","carbon calculator","페이지당 배출","per visit CO2","사용자 교육","user education","영향 가시화","make impact visible","디자인 결정 회계","두 버전 비교","측정해서 줄이기","눈에 보이게","피드백"],
+  "excerpt": "Kiourtis and colleagues argue that a design only becomes accountable once its footprint is measured: tracking per-visit emissions and even surfacing CO2 figures in the interface lets both designers and users see the consequence of a choice. They demonstrate this by comparing two versions of the same site. A designer can ask whether a redesign's effect is being measured at all, and whether the interface could make its own impact visible to the person using it.",
+  "focus": "both"
 }
 
 ]
