@@ -1,12 +1,14 @@
 // /api/translate.js
 // Vercel Serverless Function (CommonJS) — Backend Translator AI proxy (Claude).
-// Proxies to the Anthropic Messages API using ANTHROPIC_API_KEY,
-// and augments the system prompt with a few relevant corpus excerpts (light RAG).
+// Frontend (index.html) sends { prompt } where `prompt` already contains the
+// full instruction + scenario built client-side by buildTranslatorPrompt().
+// We pass that prompt to Claude as a single user message, lightly augmented
+// with a few relevant corpus excerpts (light RAG), and return { text }.
 
 const { retrieve, buildReferenceBlock } = require("./rag.js");
 
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
-const MODEL = "claude-sonnet-4-6";   // quality/cost balance for short speculative replies
+const MODEL = "claude-sonnet-4-6";
 const MAX_TOKENS = 2048;
 
 module.exports = async function handler(req, res) {
@@ -23,16 +25,15 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: "Server misconfigured: API key missing" });
   }
 
-  // parse body
-  let system, messages;
+  // parse body — frontend sends { prompt }
+  let prompt;
   try {
     let body = req.body;
     if (typeof body === "string") body = JSON.parse(body);
     body = body || {};
-    system = body.system || "";
-    messages = Array.isArray(body.messages) ? body.messages : [];
-    if (messages.length === 0) {
-      return res.status(400).json({ error: 'Missing "messages" array' });
+    prompt = typeof body.prompt === "string" ? body.prompt : "";
+    if (!prompt.trim()) {
+      return res.status(400).json({ error: 'Missing "prompt"' });
     }
   } catch (err) {
     console.error("[/api/translate] body parse error:", err);
@@ -40,38 +41,31 @@ module.exports = async function handler(req, res) {
   }
 
   // length guard (abuse prevention)
-  const messageLen = messages.reduce((sum, m) => {
-    if (typeof m.content === "string") return sum + m.content.length;
-    if (Array.isArray(m.content)) {
-      return sum + m.content.reduce((s, p) => s + (p && typeof p.text === "string" ? p.text.length : 0), 0);
-    }
-    return sum;
-  }, 0);
-  if ((system && system.length ? system.length : 0) + messageLen > 12000) {
+  if (prompt.length > 12000) {
     return res.status(400).json({ error: "Request too long" });
   }
 
-  // ── light RAG: pull a few relevant corpus excerpts from the user text ──
-  let queryText = "";
-  for (const m of messages) {
-    if (m.role !== "user") continue;
-    if (typeof m.content === "string") queryText += " " + m.content;
-    else if (Array.isArray(m.content)) {
-      for (const p of m.content) if (p && p.type === "text") queryText += " " + (p.text || "");
-    }
-  }
-  let augmentedSystem = system;
+  // ── light RAG: pull a few relevant corpus excerpts from the prompt text ──
+  // The prompt contains both instructions and the user's scenario; that's fine
+  // as a retrieval query — keyword overlap will still surface relevant excerpts.
+  let systemPrompt = "";
   try {
-    const hits = retrieve(queryText, 3);
+    const hits = retrieve(prompt, 3);
     const refBlock = buildReferenceBlock(hits);
-    if (refBlock) augmentedSystem = (system || "") + "\n" + refBlock;
+    if (refBlock) systemPrompt = refBlock.replace(/^\n/, "");
   } catch (err) {
-    // RAG is best-effort; never block a response if retrieval fails.
     console.error("[/api/translate] RAG retrieve failed (continuing without it):", err && err.message ? err.message : err);
   }
 
   // ── call Anthropic ──
   try {
+    const payload = {
+      model: MODEL,
+      max_tokens: MAX_TOKENS,
+      messages: [{ role: "user", content: prompt }],
+    };
+    if (systemPrompt) payload.system = systemPrompt;
+
     const r = await fetch(ANTHROPIC_URL, {
       method: "POST",
       headers: {
@@ -79,17 +73,15 @@ module.exports = async function handler(req, res) {
         "x-api-key": apiKey,
         "anthropic-version": "2023-06-01",
       },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: MAX_TOKENS,
-        system: augmentedSystem,
-        messages: messages,
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!r.ok) {
       const errText = await r.text().catch(() => "");
       console.error("[/api/translate] Anthropic error:", r.status, errText);
+      if (r.status === 429) {
+        return res.status(429).json({ error: "지금 이용량이 많아요. 잠시 후 다시 시도해주세요." });
+      }
       return res.status(502).json({ error: "AI 응답을 받아오는 데 실패했어요. 잠시 후 다시 시도해주세요." });
     }
 
