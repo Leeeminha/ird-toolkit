@@ -292,7 +292,7 @@ ${e.role==="user"?"**나:**":e.role==="prompt"?"**AI 질문:**":"**AI:**"} ${e.t
 `+e.refs.map(r=>`  - [${r.label}](${r.url})`).join(`
 `)),n}function Mt(e){return e.type==="postit"?(e.text||"").slice(0,40)||"(빈 포스트잇)":e.type==="image"?e.caption||"(이미지)":e.type==="decision"?e.question||"(의사결정)":e.id}function Ka(e){if(!e)return null;const t=e.hintHistory||(e.hint?[e.hint]:[]);if(!t.length)return null;const n=e.activeHintIdx!=null?Math.max(0,Math.min(e.activeHintIdx,t.length-1)):t.length-1;return t[n]||null}function Di(e){return{low:"낮음",med:"중간",high:"높음"}[e]||"미정"}function Ya(e){return String(e||"export").replace(/[\\/:*?"<>|]/g,"_").trim()||"export"}function Xa(e,t){const n=URL.createObjectURL(e),r=document.createElement("a");r.href=n,r.download=t,document.body.appendChild(r),r.click(),setTimeout(()=>{document.body.removeChild(r),URL.revokeObjectURL(n)},100)}Oi.createRoot(document.getElementById("root")).render(s.jsx(Mh,{}));
 window.__exportCanvasPNG=async function(opts){opts=opts||{};var scale=opts.scale||3;var DEBUG=opts.debug!==false;
-var SHADOW="drop-shadow(0 6px 40px rgba(0,0,0,0.4))";var pad=opts.pad!=null?opts.pad:64;
+var SHADOW="drop-shadow(0 1px 2px rgba(0,0,0,0.18)) drop-shadow(0 5px 10px rgba(0,0,0,0.40))";var pad=opts.pad!=null?opts.pad:64;
 function L(){if(DEBUG)console.log.apply(console,["[export]"].concat([].slice.call(arguments)));}
 var canvas=document.querySelector(".canvas");
 var world=document.querySelector(".canvas__world");
